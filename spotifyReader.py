@@ -21,11 +21,24 @@ sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id,
 
 # mundart for swiss rap (sample), rap francais, deutschrap, uk drill/rap
 
-N = 20
-results = sp.search(q='genre:"uk rap"', type='track', limit=N)
-print(results)
+def collectSongs(country, N = 20):
+    results = sp.search(q='genre:"' + config.COUNTRY_SETTINGS[country]['genre'] + '"', type='track', limit=N)
+    #print(results)
 
-# Print information about the top 10 tracks
-for i, track in enumerate(results['tracks']['items']):
-    print(f"{i + 1}. {track['name']} by {', '.join([artist['name'] for artist in track['artists']])}")
+    # Print information about the top 10 tracks
+    songNamePlusArtist = []
+    for i, track in enumerate(results['tracks']['items']):
+        """
+        try: 
+            rd = track['album']['release_date']
+        except Exception as e:
+            rd = ""
+        """
+        songNamePlusArtist.append([track['name'], [artist['name'] for artist in track['artists']], track['album']['release_date'], track['popularity']])
+        #print(f"{i + 1}. {track['name']} by {', '.join([artist['name'] for artist in track['artists']])}")
+    return songNamePlusArtist
 
+
+if __name__ == "__main__":
+    print("Usually shouldn't have this called itself but ok")
+    print(collectSongs('uk'))
