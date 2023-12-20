@@ -9,10 +9,13 @@ songTable = []
 artistTable = []
 artistIdMap = {}
 countries = list(config.COUNTRY_SETTINGS.keys())
-N = 20
+searchSize = 50
+searchDepth = 3
 
 # use NLP strategies
 def parseBackground(query, language):
+    # for now -- want to make this diff prolly
+    return []
     try: 
         queryOrigin = processOrigin.getAllRoots(query, language)
         return queryOrigin
@@ -60,15 +63,18 @@ def getArtistList(artists, country):
 
 # get lyrics through Genius API
 def getLyrics(songName, artists):
-    # assuming only 1 artist works
-    for artist in artists:
-        try: 
-            lyrics = geniusReader.getLyric(songName, artist)
-        except Exception as e:
-            lyrics = ''
-          
-        if lyrics != '':
-            return lyrics
+    # should make conjoined artist title
+
+    # artistQuery = artists[0] + " feat. " + ", ".join(artists[1:])
+
+    try: 
+        lyrics = geniusReader.getLyric(songName, artists[0])
+    except Exception as e:
+        print(e)
+        lyrics = ''
+        
+    if lyrics != '':
+        return lyrics
 
     print("Couldn't get lyrics for song " + songName)
     return ''
@@ -102,11 +108,18 @@ if __name__ == "__main__":
     # this example is only with switzerland (and only looking at a set of songs assuming I want to branch out recursively)
     countries = list(config.COUNTRY_SETTINGS.keys())
     for country in countries:
+        if country == 'ukp2':
+            continue
         # some data things 
         artistIdMap[country] = {}
         # first get the songs from the spotify playlist
-        songArtistPairs = spotifyReader.collectSongs(country, N)
-        print(songArtistPairs)
+        print(country)
+        print(searchSize)
+        print(searchDepth)
+        songArtistPairs = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
+        # print(songArtistPairs)
+        print(len(songArtistPairs))
+        continue
         for sap in songArtistPairs:
             songName = sap[0]
             artists = sap[1]
@@ -117,8 +130,10 @@ if __name__ == "__main__":
                 addArtist(a, country)
             # the look at/get info about songs
             addSong(songName, artists, country, releaseDate, popularity)
+        # break
 
-    print("SONG TABLE:")
-    print(songTable)
-    print("ARTIST TABLE:")
-    print(artistTable)
+    # find a way to get this to json
+    # print("SONG TABLE:")
+    # print(songTable)
+    # print("ARTIST TABLE:")
+    # print(artistTable)
