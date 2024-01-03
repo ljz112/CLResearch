@@ -10,7 +10,7 @@ def getLyric(songName, artist):
     song = genius.search_song(songName, artist)
     # find the song lyrics and parse them
     lyrics = parse(song, songName, artist)
-    print(lyrics)
+    # print(lyrics)
     return lyrics
 
 # to parse the lyrics since they can be quite noisy

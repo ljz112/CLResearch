@@ -83,24 +83,40 @@ def getDiscography(artist, country, N):
 def branchOut(country, N, depth, baseData, searchedArtists = []):
     # depth limit reached
     if depth == 0:
-        return baseData
+        return [baseData, searchedArtists]
     
     # otherwise look at every artist in baseData and for each one (that you haven't done yet) do a spotify API call then a recursive call (merge)
     allData = baseData
+    # add the searched artists and remove dupes after (NO NOT REALLY)
+
+    # steps for searched artists
+    # 1) find all the artists in the baseData
+    # 2) search through them if they're not in searchedArtists already
+    # 3) update searchedArtists based on what the recursive calls have searched
+    
+    # find all the artists in the baseData
+    artistsInData = []
     for b in baseData:
         for artist in b[1]:
-            # only if we've already searched this artist
-            if artist not in searchedArtists:
-                # search for genre and artist (get right discography and genre)
-                discography = getDiscography(artist, country, N)
-                if country == 'uk':
-                    discography = mergeResults(discography, getDiscography(artist, 'ukp2', N))
+            artistsInData.append(artist)
+    artistsInData = list(set(artistsInData))
 
-                searchedArtists.append(artist)
-                # merge all data together with this discography (and all the extra searching needed)
-                allData = mergeResults(allData, branchOut(country, N, depth - 1, discography, searchedArtists))
+    # now go through searched artists to get the discographies
+    for artist in artistsInData:
+        if artist not in searchedArtists:
+            # search for genre and artist (get right discography and genre)
+            discography = getDiscography(artist, country, N)
+            if country == 'uk':
+                discography = mergeResults(discography, getDiscography(artist, 'ukp2', N))
 
-    return allData
+            searchedArtists.append(artist)
+            # get branched out data plus new list of searched artists
+            branchedData, searchedArtists = branchOut(country, N, depth - 1, discography, searchedArtists)
+            # merge all data together with this discography
+            allData = mergeResults(allData, branchedData)
+            searchedArtists = list(set(searchedArtists))
+
+    return [allData, searchedArtists]
 
 # if you actually wanna get many songs to form a corpus
 def collectMostSongs(country, N = 50, depth = 3):
@@ -112,14 +128,42 @@ def collectMostSongs(country, N = 50, depth = 3):
         baseData = mergeResults(baseData, collectSongsGenre('ukp2', N))
 
     # step 2: go thru songs then add new things from them (do this recursively with a given depth)
-    allData = branchOut(country, N, depth, baseData)
+    allData, otherVar = branchOut(country, N, depth, baseData)
 
     return allData
 
+# removes multiple releases of the same song 
+def removeMultipleReleases(data):
+    # to keep the duplicate winners in this list
+    revised_elements = []
+    ind = 0
+    while ind < len(data):
+        song = data[ind]
+        # find all indexes where 1st and 2nd element is the same
+        indexes = [i for i in range(len(data)) if (data[i][0] == song[0] and data[i][1] == song[1])]
+        if len(indexes) == 1:
+            ind += 1
+            continue
+        # get these elements
+        dupeElements = [data[i] for i in indexes]
+        # add the most popular thing to the revised elements (deciding to do this since spotify's popularity metric is 1-100)
+        maxDupe = max(dupeElements, key=lambda x: x[3])
+        revised_elements.append(maxDupe)
+        # and remove all the dupe values from the main data
+        indexes = sorted(indexes, reverse = True)
+        for i in indexes:
+            data.pop(i)
+
+    data += revised_elements
+    return data
+        
+
 if __name__ == "__main__":
     print("Usually shouldn't have this called itself but ok")
-    # should text this: the popular drill things aren't showing (eg doja, welcome to brixton)
-    # also idk why but the number of returned things substantially decreases the more you do this 
-    mostSongs = collectMostSongs('uk')
+    # problem 0: have to get all of these results at the end of mainData into a json where everything can be stored (might have to take less popular away if too much storage)
+    # problem 1: not doing spotify queries correctly with genre (need array and no ukp2?, but I'm close enough) and artists (need id) (data management problem)
+    mostSongs = collectMostSongs('fr', 50, 3)
+    mostSongs = removeMultipleReleases(mostSongs)
     print(mostSongs)
     print(len(mostSongs))
+    # print(getDiscography("Skepta", "ukp3", 50))

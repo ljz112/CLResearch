@@ -3,14 +3,16 @@ import spotifyReader
 import musicBrainzReader
 import processOrigin
 import geniusReader
+import time
+import json
 
 # defaults for every thing
 songTable = []
 artistTable = []
 artistIdMap = {}
 countries = list(config.COUNTRY_SETTINGS.keys())
-searchSize = 50
-searchDepth = 3
+searchSize = 10
+searchDepth = 0
 
 # use NLP strategies
 def parseBackground(query, language):
@@ -107,7 +109,9 @@ def addSong(songName, artists, country, releaseDate, popularity):
 if __name__ == "__main__":
     # this example is only with switzerland (and only looking at a set of songs assuming I want to branch out recursively)
     countries = list(config.COUNTRY_SETTINGS.keys())
+    # should prolly do only one country at a time though then combine at the end
     for country in countries:
+        country = 'uk'
         if country == 'ukp2':
             continue
         # some data things 
@@ -119,7 +123,7 @@ if __name__ == "__main__":
         songArtistPairs = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
         # print(songArtistPairs)
         print(len(songArtistPairs))
-        continue
+        # time.sleep(15)
         for sap in songArtistPairs:
             songName = sap[0]
             artists = sap[1]
@@ -130,10 +134,12 @@ if __name__ == "__main__":
                 addArtist(a, country)
             # the look at/get info about songs
             addSong(songName, artists, country, releaseDate, popularity)
-        # break
+        break
 
-    # find a way to get this to json
-    # print("SONG TABLE:")
-    # print(songTable)
-    # print("ARTIST TABLE:")
-    # print(artistTable)
+    # convert all collected data to a json and create that json file
+    json_data = json.dumps({'allSongs': songTable, 'allArtists': artistTable}) 
+    json_file_path = "dataEntries/output.json"
+    with open(json_file_path, "w") as json_file:
+        json_file.write(json_data)
+
+    print("JSON data written, data collection finished")
