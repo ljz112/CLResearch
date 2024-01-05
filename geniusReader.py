@@ -31,6 +31,9 @@ def parse(song, songName, artist):
     # then all the numbers coming before it
     while lyrics[-1].isdigit():
         lyrics = lyrics[:-1]
+    # find the first "Lyrics" string and remove that plus everything before it
+    lyricsSep = "Lyrics"
+    lyrics = lyricsSep.join(lyrics.split(lyricsSep)[1:])
 
     return lyrics
 

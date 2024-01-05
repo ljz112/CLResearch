@@ -8,4 +8,18 @@ mbz.set_useragent(config.EMAIL, '0.1')
 def getOriginDetails(artist):
     artist_list = mbz.search_artists(query=artist)['artist-list'] 
     details = artist_list[0]
-    return [details['life-span']['begin'], details['begin-area']['name']]
+    return [getBirthDate(details), getHometown(details)]
+
+# get the birth date of set of details
+def getBirthDate(details):
+    try: 
+        return details['life-span']['begin']
+    except Exception as e:
+        return ''
+
+# returns hometown of artist
+def getHometown(details):
+    try: 
+        return details['begin-area']['name']
+    except Exception as e:
+        return ''

@@ -3,7 +3,6 @@ import spotifyReader
 import musicBrainzReader
 import processOrigin
 import geniusReader
-import time
 import json
 
 # defaults for every thing
@@ -11,8 +10,8 @@ songTable = []
 artistTable = []
 artistIdMap = {}
 countries = list(config.COUNTRY_SETTINGS.keys())
-searchSize = 10
-searchDepth = 0
+searchSize = 25       # max 50
+searchDepth = 3
 
 # use NLP strategies
 def parseBackground(query, language):
@@ -55,7 +54,7 @@ def addArtist(artist, country):
     toAdd['birthArea'] = bArea
     # fields from wiki
     lang = config.COUNTRY_SETTINGS[country]['lang']
-    toAdd['background'] = parseBackground(artist, lang)
+    # toAdd['background'] = parseBackground(artist, lang)
     # then add to the table
     artistTable.append(toAdd)
 
@@ -95,6 +94,7 @@ def addSong(songName, artists, country, releaseDate, popularity):
     toAdd = {}
     # basic fields 
     songId = len(songTable)
+    print("SONG NUMBER " + str(songId + 1))
     toAdd['id'] = songId
     toAdd['name'] = songName
     toAdd['artists'] = artistList
@@ -109,7 +109,7 @@ def addSong(songName, artists, country, releaseDate, popularity):
 if __name__ == "__main__":
     # this example is only with switzerland (and only looking at a set of songs assuming I want to branch out recursively)
     countries = list(config.COUNTRY_SETTINGS.keys())
-    # should prolly do only one country at a time though then combine at the end
+    # should prolly do only one country at a time though then combine at the end (TODO uk)
     for country in countries:
         country = 'uk'
         if country == 'ukp2':
@@ -117,13 +117,9 @@ if __name__ == "__main__":
         # some data things 
         artistIdMap[country] = {}
         # first get the songs from the spotify playlist
-        print(country)
-        print(searchSize)
-        print(searchDepth)
+        print(f"STATS BEFORE: {country}, {searchSize}, {searchDepth}")
         songArtistPairs = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
-        # print(songArtistPairs)
-        print(len(songArtistPairs))
-        # time.sleep(15)
+        print(f"ALL COLLECTED SONGS: {len(songArtistPairs)}")
         for sap in songArtistPairs:
             songName = sap[0]
             artists = sap[1]
