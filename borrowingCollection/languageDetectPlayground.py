@@ -4,7 +4,7 @@ import nltk
 import re
 
 nltk.download('punkt')
-MAINLANG = "fr"
+MAINLANG = "de"
 
 def getDetectedLang(distrib):
     return str(distrib[0]).split(':')[0]
@@ -33,7 +33,7 @@ def langDetectStats(text):
                 tokens = nltk.word_tokenize(l)
                 print("KEY WORDS")
                 for t in tokens:
-                    if not onlyPunctuation(t):
+                    if not (onlyPunctuation(t) or t.isdigit()):
                         distrib = langdetect.detect_langs(t)
                         if getDetectedLang(distrib) != "fr" or len(distrib) != 1:
                             print(t)
@@ -45,14 +45,14 @@ def langDetectStats(text):
 
 
 
-with open('../dataEntries/frenchData.json', 'r') as file:
+with open('../dataEntries/swissData.json', 'r') as file:
     # Load the JSON data into a Python dictionary
     data = json.load(file)
 
 dataOfInterest = [d for d in data['allSongs'] if d['lyrics'] != ""]
 print(f"Number of songs: {len(dataOfInterest)}")
 
-firstVal = dataOfInterest[0]
+firstVal = dataOfInterest[52]
 lyricstoExamine = firstVal['lyrics']
 
 print("First text")

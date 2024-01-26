@@ -41,6 +41,9 @@ def parse(song, songName, artist):
 def remove_square_brackets(input_string):
     pattern = r"\[.*?\]"  # Matches anything within square brackets
     result_string = re.sub(pattern, "", input_string)
+    # also so the ticket message is gone
+    pattern = r'See ([^\n]*) LiveGet tickets as low as \$\d+'
+    result_string = re.sub(pattern, "", input_string)
     return result_string
 
 # same here, used for the "Embed" occuring at the very end
