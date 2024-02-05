@@ -20,7 +20,7 @@ for token in tokens:
     # print(token)
     print(token.text)
 
-substring = "petit"
-larger_string = "J'suis trop p'tit"
+substring = "alah"
+larger_string = "allah"
 fr = fuzz.partial_ratio(substring, larger_string)
 print(fr)
