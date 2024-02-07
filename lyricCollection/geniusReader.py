@@ -15,6 +15,9 @@ def getLyric(songName, artist):
 
 # to parse the lyrics since they can be quite noisy
 def parse(song, songName, artist):
+    # none checking
+    if song is None:
+        return ""
     # check that it is the right song
     if (songName.lower() not in song.title.lower()) and (artist.lower() not in song.artist.lower()):
         return ""
