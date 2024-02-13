@@ -1,5 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import sys
+sys.path.append('..')
 import config
 
 

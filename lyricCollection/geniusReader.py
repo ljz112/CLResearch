@@ -1,20 +1,23 @@
 from lyricsgenius import Genius
 import config
 import re
+from lingua import Language, LanguageDetectorBuilder
 
 genius = Genius(config.GENIUS_TOKEN)
 
+languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH] # Language.ARABIC (swahili used as replacement)
+detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
 # use genius API to get song lyrics
-def getLyric(songName, artist):
+def getLyric(songName, artist, inFrench = False):
     song = genius.search_song(songName, artist)
     # find the song lyrics and parse them
-    lyrics = parse(song, songName, artist)
+    lyrics = parse(song, songName, artist, inFrench)
     # print(lyrics)
     return lyrics
 
 # to parse the lyrics since they can be quite noisy
-def parse(song, songName, artist):
+def parse(song, songName, artist, inFrench):
     # none checking
     if song is None:
         return ""
@@ -37,6 +40,10 @@ def parse(song, songName, artist):
     # find the first "Lyrics" string and remove that plus everything before it
     lyricsSep = "Lyrics"
     lyrics = lyricsSep.join(lyrics.split(lyricsSep)[1:])
+
+    # only for french
+    if inFrench and detector.compute_language_confidence_values(lyrics)[0].language.name != "FRENCH":
+        return ""
 
     return lyrics
 

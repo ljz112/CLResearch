@@ -10,6 +10,7 @@ import sys
 # setting path
 sys.path.append('../lyricCollection')
 from geniusReader import getLyric
+from youtubeReader import getYoutubePopularity
 
 artist = "Yuno Miles"
 
@@ -22,6 +23,8 @@ for songName in songNames:
     songInfo = {}
     songInfo['date'] = songName['date']
     songInfo['name'] = songName['name']
+    # be careful, you have a quota for using the youtube api
+    songInfo['popularity'] = getYoutubePopularity(songName['name'], artist)
     songInfo['lyrics'] = getLyric(songName['name'], artist)
     allTrackInfo.append(songInfo)
     

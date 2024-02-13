@@ -19,6 +19,10 @@ def onlyPunctuation(input_string):
     match = punctuation_pattern.search(input_string)
     return bool(match)
 
+# for lingua
+def analyzeDistrib(distrib):
+    confidence = distrib[0]
+    return confidence.language.name != "FRENCH" or confidence.value < 0.7
 
 def langDetectStats(text):
     # get overall stats
@@ -34,14 +38,15 @@ def langDetectStats(text):
         if l != "":
             # distrib = langdetect.detect_langs(l)
             distrib = detector.compute_language_confidence_values(l)
-            print(l)
-            print(distrib)
+            if analyzeDistrib(distrib):
+                print(l)
+                print(distrib)
             continue
+            """
             if getDetectedLang(distrib) != "fr" or len(distrib) != 1:
                 print(l)
                 print(distrib)
                 # go word level here
-                """
                 tokens = nltk.word_tokenize(l)
                 print("KEY WORDS")
                 for t in tokens:
