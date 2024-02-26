@@ -16,7 +16,7 @@ import json
 
 
 # just some setting up, change type of embedding here
-mode = 3
+mode = 0
 
 if mode == 0:
     dimensionality = 300
@@ -267,7 +267,7 @@ def museWordEmbed():
             # attempt to find the embedding
             try:
                 word = model[m][word]
-                if m = 'ar':
+                if m == 'ar':
                     word = buckwalter.untransliterate(word)
                 return model[m][word]
             except KeyError as e:
