@@ -1,14 +1,21 @@
 import random
 # import langdetect # works okay, but lingua works better 
 import json
+from unidecode import unidecode
+import re
 from lingua import Language, LanguageDetectorBuilder # works well but biggest issue is you can't romanize anything
-# import nltk
-# import re
+import spacy
 
 # nltk.download('punkt')
-MAINLANG = "fr"
 languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.SPANISH] # Language.ARABIC (swahili used as replacement)
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
+useDetect = False
+if not useDetect:
+    nlp = spacy.load("fr_core_news_sm")
+    with open('../../../francais.txt', 'r', encoding='utf-8') as file:
+        # Load the JSON data into a Python dictionary
+        text = file.read()
+        dictData = [s.strip() for s in text.split('\n') if s.strip() != '']
 # detector = LanguageDetectorBuilder.from_all_languages().with_preloaded_language_models().build() # if you want all langs
 
 def getDetectedLang(distrib):
@@ -24,8 +31,17 @@ def analyzeDistrib(distrib):
     confidence = distrib[0]
     return confidence.language.name != "FRENCH" or confidence.value < 0.7
 
+# to normalize the txt 
+def textNormalize(text):
+    text = unidecode(text.lower())
+    text = text.replace("'", "e")
+    text = re.sub(r'[^\w\s]','',text)
+    if text.strip() == "":
+        return "je"
+    return text
+
+# get overall lang detect stats
 def langDetectStats(text):
-    # get overall stats
     """
     distrib = langdetect.detect_langs(text)
     print("OVERALL DISTRIB")
@@ -33,30 +49,25 @@ def langDetectStats(text):
     """
     # sep by \n
     lines = text.split('\n')
-    print("LINES NOW")
+    notWords = []
+    print("LINES/WORDS NOW")
     for l in lines:
         if l != "":
-            # distrib = langdetect.detect_langs(l)
-            distrib = detector.compute_language_confidence_values(l)
-            if analyzeDistrib(distrib):
-                print(l)
-                print(distrib)
-            continue
-            """
-            if getDetectedLang(distrib) != "fr" or len(distrib) != 1:
-                print(l)
-                print(distrib)
-                # go word level here
-                tokens = nltk.word_tokenize(l)
-                print("KEY WORDS")
+            if useDetect:
+                distrib = detector.compute_language_confidence_values(l)
+                if analyzeDistrib(distrib):
+                    print(l)
+                    print(distrib)
+                continue
+            else:
+                # tokenize for words (TODO THERE ARE SOME CHARS NOT MATCHING IN HERE, esp phonetic/accented ones. file read or accent mapping)
+                doc = nlp(l)
+                tokens = [textNormalize(token.text) for token in doc]
                 for t in tokens:
-                    if not (onlyPunctuation(t) or t.isdigit()):
-                        distrib = langdetect.detect_langs(t)
-                        if getDetectedLang(distrib) != "fr" or len(distrib) != 1:
-                            print(t)
-                            print(distrib)
-                """
-
+                    if t in dictData:
+                        continue 
+                    notWords.append(t)
+    print(set(notWords))
 
 
 
