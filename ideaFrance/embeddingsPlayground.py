@@ -14,9 +14,8 @@ import csv
 import warnings
 import json
 
-
 # just some setting up, change type of embedding here
-mode = 0
+mode = 3
 
 if mode == 0:
     dimensionality = 300
@@ -130,6 +129,7 @@ def sentenceEmbed():
     noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
     print("Words with no embedding:")
     print(noneEmbeddings)
+    print(len(noneEmbeddings))
     words = [e[1] for e in embeddings if e[0] is not None]
     embeddings = [e[0] for e in embeddings if e[0] is not None]
 
@@ -177,6 +177,7 @@ def word2VecSkipGram():
     noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
     print("Words with no embedding:")
     print(noneEmbeddings)
+    print(len(noneEmbeddings))
     words = [e[1] for e in embeddings if e[0] is not None]
     embeddings = [e[0] for e in embeddings if e[0] is not None]
 
@@ -219,6 +220,7 @@ def ud_embeddings():
     noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
     print("Words with no embedding:")
     print(noneEmbeddings)
+    print(len(noneEmbeddings))
     words = [e[1] for e in embeddings if e[0] is not None]
     embeddings = [e[0] for e in embeddings if e[0] is not None]
 
@@ -241,7 +243,7 @@ def ud_embeddings():
 def museWordEmbed():
 
 
-    modes = ['fr', 'en', 'es', 'it', 'de', 'ar'] # trying to deal with arabic
+    modes = ['fr', 'en', 'es', 'it', 'de', 'ar']
     onLang = -1
     model = {}
 
@@ -249,16 +251,59 @@ def museWordEmbed():
     def getPath(lang):
         return '../../museData/MUSE/data/wiki.multi.' + lang + '.vec'
 
+    # because the gensim doesn't work with arabic just doing this manually
+    def manuallyMakeModel(lang):
+
+        # helper to find the first non float index
+        def firstNonStrInd(lineToArr):
+            i = 0
+            for l in lineToArr:
+                try:
+                    float(l)
+                    return i if i > 0 else 1
+                except:
+                    i += 1
+
+        with open(getPath(lang), 'r', encoding='utf-8') as f:
+            num_words, dim = map(int, f.readline().split())
+
+            # loop through the lines
+            manualModel = {}
+            for line in f:
+                lineToArr = line.strip().split()
+                firstEmbedInd = firstNonStrInd(lineToArr)
+                wordToAdd = ' '.join(lineToArr[0:firstEmbedInd])
+                embedToAdd = [float(e) for e in lineToArr[firstEmbedInd:]]
+                # just ignore the ones that don't have the correct dimensionality
+                if len(embedToAdd) != dim:
+                    continue
+                manualModel[wordToAdd] = embedToAdd
+            
+            return manualModel
+
+    # function to load the next model (less common words)
     def loadNextModel():
         nonlocal onLang
         onLang += 1
         langToLoad = modes[onLang]
         print("LOADING " + langToLoad)
-        word_vectors = KeyedVectors.load_word2vec_format(getPath(langToLoad), binary=False)
+        word_vectors = KeyedVectors.load_word2vec_format(getPath(langToLoad), binary=False) if langToLoad != 'ar' else manuallyMakeModel(langToLoad)
         model[langToLoad] = word_vectors
 
     # to find the embedding
     def findEmbed(word):
+        
+        # hyphen case (doesn't seem to work currently)
+        if ('-' in word) and (word.count('-') == 1):
+            word1, word2 = word.split('-')
+            print("HERE " + word1 + " " + word2)
+            word1Embed = findEmbed(word1)
+            word2Embed = findEmbed(word2)
+            if (word1Embed is None) or (word2Embed is None):
+                return None
+            # average of the vector sums
+            return [float((word1Embed[i] + word2Embed[i]) / 2.0) for i in range(len(word1Embed))]
+
         for m in modes:
             # check if you need to load a new model
             if m not in model:
@@ -266,10 +311,8 @@ def museWordEmbed():
 
             # attempt to find the embedding
             try:
-                word = model[m][word]
-                if m == 'ar':
-                    word = buckwalter.untransliterate(word)
-                return model[m][word]
+                # this en to ar transliteration doesn't work well though
+                return model[m][word if m != 'ar' else buckwalter.untransliterate(word)]
             except KeyError as e:
                 continue
         return None # defaultVec
@@ -280,9 +323,10 @@ def museWordEmbed():
     noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
     print("Words with no embedding:")
     print(noneEmbeddings)
+    print(len(noneEmbeddings))
     words = [e[1] for e in embeddings if e[0] is not None]
     embeddings = [e[0] for e in embeddings if e[0] is not None]
-    cluster(words, embeddings, 6)
+    cluster(words, embeddings)
     
 if __name__ == "__main__":
     if mode == 0:
