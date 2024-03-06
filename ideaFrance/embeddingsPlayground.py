@@ -36,7 +36,7 @@ def getWords():
     with open(csv_file_path, 'r', newline='', encoding='utf-8') as file:
         wordData = list(csv.reader(file))
 
-    words = [wd[0].lower() for wd in wordData[1:] if " " not in wd[0]]
+    words = [wd[0].strip().lower() for wd in wordData[1:] if " " not in wd[0]]
     return words
 
 # get the embedding of a word given a certain model
@@ -303,6 +303,15 @@ def museWordEmbed():
                 return None
             # average of the vector sums
             return [float((word1Embed[i] + word2Embed[i]) / 2.0) for i in range(len(word1Embed))]
+        
+        # hyphen case (doesn't seem to work currently)
+        if (' ' in word) and (word.count(' ') >= 1):
+            words = word.split(' ')
+            words = [findEmbed(w) for w in words]
+            if any(w is None for w in words):
+                return None
+            # average of the vector sums (out: loop thru cols)
+            return [float(sum([words[i][j] for i in range(len(words))]) / len(words)) for j in range(len(words[0]))]
 
         for m in modes:
             # check if you need to load a new model
@@ -317,8 +326,10 @@ def museWordEmbed():
                 continue
         return None # defaultVec
 
+    arabicWords = ["زِبْل", "بِالْجُزَاف", "هَيْجاء", "كلب", "قهوة", "فلوس", "السلام عليكم", "ما شاء الله", "إن شاء الله", "الحمد لله", "خلاص", "أستغفر الله", "ضحك", "أخ", "راجل", "مسكين", "حلال"]
+
     # initialization
-    words = getWords()
+    words = getWords() + arabicWords
     embeddings = [(findEmbed(word), word) for word in words]
     noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
     print("Words with no embedding:")
