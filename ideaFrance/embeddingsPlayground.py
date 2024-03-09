@@ -32,11 +32,12 @@ defaultVec = [0.0] * dimensionality
 # get the list of borrowed words I'm interested in
 def getWords():
     # generate the words in a csv file
-    csv_file_path = 'borrowedWords.csv'
+    csv_file_path = 'collectedData/borrowedWords.csv'
     with open(csv_file_path, 'r', newline='', encoding='utf-8') as file:
         wordData = list(csv.reader(file))
 
-    words = [wd[0].strip().lower() for wd in wordData[1:] if " " not in wd[0]]
+    # could add condition if " " not in wd[0]
+    words = [wd[0].strip().lower() for wd in wordData[1:]]
     return words
 
 # get the embedding of a word given a certain model

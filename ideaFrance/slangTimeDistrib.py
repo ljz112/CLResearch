@@ -53,7 +53,6 @@ def examineLine(line, slang, isDisp = False):
 
     # first, find max subst dist / str len in the string
     if fuzz.partial_ratio(slang, line) >= threshhold:
-        print(line)
 
         # tokenize line (if doesn't work as well try double metaphone)
         doc = nlp(line)
@@ -76,17 +75,23 @@ def examineLine(line, slang, isDisp = False):
                 if isDisp:
                     return True
             i += 1
+    """
+    if count > 0:
+        print(line)
+    """
+    
     return False if isDisp else count
 
 
 # for getting the plot of words over time
-def getWordUsePlot(slang, mode = "total_num"):
+def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
 
-    with open('../dataEntries/frenchData.json', 'r') as file:
-        # Load the JSON data into a Python dictionary
-        data = json.load(file)
+    if __name__ == "__main__":
+        with open('../dataEntries/frenchData.json', 'r') as file:
+            # Load the JSON data into a Python dictionary
+            data = json.load(file)
 
-    dataOfInterest = [d for d in data['allSongs'] if d['lyrics'].replace('\n', '').strip() != ""]
+        dataOfInterest = [d for d in data['allSongs'] if d['lyrics'].replace('\n', '').strip() != ""]
     # random seed just for testing
     # dataOfInterest = [dataOfInterest[random.randint(0, len(dataOfInterest) - 1)]]
     # print(f"Number of songs with the word {slang}: {len(dataOfInterest)}")
@@ -160,6 +165,7 @@ def getWordUsePlot(slang, mode = "total_num"):
     return graphList
 
 # reminder: it's not really slang I'm looking at but lexical borrowings. so keeping it for this file but will be diff in others
-slangword = "wesh"
-mode = "disp"
-print(getWordUsePlot(slangword, mode))
+if __name__ == "__main__":
+    slangword = "wesh"
+    mode = "disp"
+    print(getWordUsePlot(slangword, mode))

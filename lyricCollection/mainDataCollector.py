@@ -1,17 +1,20 @@
-import config
 import spotifyReader
 import musicBrainzReader
 import processOrigin
 import geniusReader
 import json
+import sys
+sys.path.append('..')
+import config
+
 
 # defaults for every thing
 songTable = []
 artistTable = []
 artistIdMap = {}
 countries = list(config.COUNTRY_SETTINGS.keys())
-searchSize = 25       # max 50
-searchDepth = 3
+searchSize = 5       # max 50
+searchDepth = 1
 
 # use NLP strategies
 def parseBackground(query, language):
@@ -37,7 +40,8 @@ def getBasicDetails(artist):
 # add a new artist + all fields to 
 def addArtist(artist, country):
     # first need to check if artist alr exists in the table
-    alrHere = any((d['name'] == artist and d['country'] == country) for d in artistTable)
+    # and d['country'] == country
+    alrHere = any((d['name'] == artist) for d in artistTable)
     if alrHere:
         # artist info has alr been recorded
         return
@@ -47,7 +51,9 @@ def addArtist(artist, country):
     artistIdMap[country][artist] = artistId
     toAdd['id'] = artistId
     toAdd['name'] = artist
+    """
     toAdd['country'] = country
+    """
     # fields from musicBrainz
     bDate, bArea = getBasicDetails(artist)
     toAdd['birthDate'] = bDate
@@ -87,7 +93,8 @@ def addSong(songName, artists, country, releaseDate, popularity):
     # first need to get the artists into an id list
     artistList = getArtistList(artists, country)
     # also need a function to determine if all the elements are in the same list 
-    alrHere = any((d['name'] == songName and set(d['artists']) == set(artistList) and d['country'] == country) for d in songTable)
+    # and d['country'] == country
+    alrHere = any((d['name'] == songName and set(d['artists']) == set(artistList)) for d in songTable)
     if alrHere:
         # song info has been here once
         return
@@ -98,28 +105,62 @@ def addSong(songName, artists, country, releaseDate, popularity):
     toAdd['id'] = songId
     toAdd['name'] = songName
     toAdd['artists'] = artistList
+    """
     toAdd['country'] = country
+    """
     toAdd['releaseDate'] = releaseDate
     toAdd['popularity'] = popularity
     # lyrics
     toAdd['lyrics'] = getLyrics(songName, artists)
     songTable.append(toAdd)
 
+# so I can get an evenly distributed collection of things (using code from ideaFrance/frenchDataChecker.py)
+def combineFrenchStuff(country):
+
+    # helper just to parse for the year
+    def getYear(fd):
+        releaseDate = fd[2]
+        return int(releaseDate.split("-")[0])
+
+    splitYear = 2015
+
+    # phase 1: before split year
+    searchSize = 50
+    searchDepth = 15
+
+    print(f"Collecting data before {splitYear} ({searchSize} size and {searchDepth} depth)...")
+    frenchData1 = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
+    numSongs = len(frenchData1)
+    print(f"Collected {numSongs} songs for round 1.")
+
+    # phase 2: after split year
+    searchSize = 25
+    searchDepth = 3 
+
+    print(f"Collecting data after {splitYear} ({searchSize} size and {searchDepth} depth)...")
+    frenchData2 = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
+    numSongs = len(frenchData2)
+    print(f"Collected {numSongs} songs for round 2.")
+
+    return [f1 for f1 in frenchData1 if (getYear(f1) > splitYear)] + [f2 for f2 in frenchData2 if (getYear(f2) <= splitYear)]
+
+
+
 # main code that runs to get songTable and artistTable filled up
-# TODO change file paths (if needed) before running again
 if __name__ == "__main__":
     # this example is only with switzerland (and only looking at a set of songs assuming I want to branch out recursively)
     countries = list(config.COUNTRY_SETTINGS.keys())
-    # should prolly do only one country at a time though then combine at the end (TODO uk)
     for country in countries:
-        country = 'uk'
+        country = 'fr'
+        """
         if country == 'ukp2':
             continue
+        """
         # some data things 
         artistIdMap[country] = {}
         # first get the songs from the spotify playlist
-        print(f"STATS BEFORE: {country}, {searchSize}, {searchDepth}")
-        songArtistPairs = spotifyReader.collectMostSongs(country, searchSize, searchDepth)
+        # print(f"STATS BEFORE: {country}, {searchSize}, {searchDepth}")
+        songArtistPairs = combineFrenchStuff(country)
         print(f"ALL COLLECTED SONGS: {len(songArtistPairs)}")
         for sap in songArtistPairs:
             songName = sap[0]
@@ -135,7 +176,7 @@ if __name__ == "__main__":
 
     # convert all collected data to a json and create that json file
     json_data = json.dumps({'allSongs': songTable, 'allArtists': artistTable}) 
-    json_file_path = "dataEntries/output.json"
+    json_file_path = "../dataEntries/output.json"
     with open(json_file_path, "w") as json_file:
         json_file.write(json_data)
 
