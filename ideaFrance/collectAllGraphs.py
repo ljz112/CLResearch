@@ -11,8 +11,15 @@ print("Opening collected songs")
 with open('../dataEntries/frenchDataNew.json', 'r') as file:
     # Load the JSON data into a Python dictionary
     data = json.load(file)
-# filter to french speaking ones only (7371/9497 songs)
-dataOfInterest = [d for d in data['allSongs'] if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
+# filter to french speaking ones only (7262/9497 songs)
+startData = [d for d in data['allSongs'] if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
+# remove duplicates
+seen = {}
+dataOfInterest = []
+for item in startData:
+    if item['lyrics'] not in seen:
+        seen[item['lyrics']] = True
+        dataOfInterest.append(item)
 print("Filtered collected songs")
 
 # open the slang words
