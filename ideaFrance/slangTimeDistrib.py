@@ -7,17 +7,23 @@ import random
 
 nlp = spacy.load("fr_core_news_sm")
 startingDate = '1990-01'
-threshhold = 80
-splitOnRe = r'[ \-\']'
+threshhold = 90 # when running, if you want to test turn dev parameter to true in examineLine
+splitOnRe = r'[\s\-\']' # better safe than sorry
 
 # calculate number of months from start to curr (in string format)
-def noMonths(start, curr):
+def noMonths(start, curr, dateMode):
+    # only if you want to see all the years
+    if dateMode == "year":
+        return int(curr)
+
     startyear, startmonth = start.split('-')
     curryear, currmonth = curr.split('-')
     startyear = int(startyear)
     startmonth = int(startmonth)
     curryear = int(curryear)
     currmonth = int(currmonth)
+
+    # math for calculating months
     if currmonth >= startmonth:
         return (12 * (curryear - startyear)) + (currmonth - startmonth)
     else:
@@ -42,17 +48,18 @@ def fineTuneMembership(lyrics, slang, method = 'default'):
             count += examineLine(line, slang)
         return count
 
-# how to determine if a lexical borrowing occurs in a line
-def examineLine(line, slang, isDisp = False):
+# how to determine if a lexical borrowing occurs in a line (change dev if you want to see examples w lowered threshhold)
+def examineLine(line, slang, isDisp = False, dev = False):
 
     # init a few things
     slangLen = len(slang)
     slangExtraWords = slang.count(' ')
     joinPunctuation = ["'", "-"]
     count = 0
+    thresh = 80 if dev else threshhold
 
     # first, find max subst dist / str len in the string
-    if fuzz.partial_ratio(slang, line) >= threshhold:
+    if fuzz.partial_ratio(slang, line) >= thresh:
 
         # tokenize line (if doesn't work as well try double metaphone)
         doc = nlp(line)
@@ -60,31 +67,36 @@ def examineLine(line, slang, isDisp = False):
         i = 0
         for token in tokens:
             # if the ratio is (basically) the same as the partial ratio
-            if fuzz.ratio(slang, token) >= threshhold:
+            if fuzz.ratio(slang, token) >= thresh:
+                if dev:
+                    print("CASE 1")
+                    print(line)
                 count += 1
                 if isDisp:
                     return True
             # edge case 1: there are multiple words in the slang
-            elif (slangExtraWords > 0) and (i >= slangExtraWords) and (fuzz.ratio(slang, ' '.join(tokens[i-slangExtraWords : i+1])) >= threshhold):
+            elif (slangExtraWords > 0) and (i >= slangExtraWords) and (fuzz.ratio(slang, ' '.join(tokens[i-slangExtraWords : i+1])) >= thresh):
+                if dev:
+                    print("CASE 2")
+                    print(line)
                 count += 1
                 if isDisp:
                     return True
             # edge case 2: the token was cut off by a joining punctuation, (eg ' or -)
-            elif (slangLen > len(token)) and (i > 0) and (tokens[i - 1][-1] in joinPunctuation) and (fuzz.ratio(slang, ''.join([tokens[i - 1], token])) >= threshhold):
+            elif (slangLen > len(token)) and (i > 0) and (tokens[i - 1][-1] in joinPunctuation) and (fuzz.ratio(slang, ''.join([tokens[i - 1], token])) >= thresh):
+                if dev:
+                    print("CASE 3")
+                    print(line)
                 count += 1
                 if isDisp:
                     return True
             i += 1
-    """
-    if count > 0:
-        print(line)
-    """
     
     return False if isDisp else count
 
 
 # for getting the plot of words over time
-def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
+def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""):
 
     if __name__ == "__main__":
         with open('../dataEntries/frenchData.json', 'r') as file:
@@ -94,7 +106,6 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
         dataOfInterest = [d for d in data['allSongs'] if d['lyrics'].replace('\n', '').strip() != ""]
     # random seed just for testing
     # dataOfInterest = [dataOfInterest[random.randint(0, len(dataOfInterest) - 1)]]
-    # print(f"Number of songs with the word {slang}: {len(dataOfInterest)}")
 
     # need to make a dictionary for date then return the pairs
     graphDict = {}
@@ -102,9 +113,17 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
         # change date to granularity of month
         date = di['releaseDate']
         if '-' not in date:
+            # if you only want months take this away
+            if dateMode == "month":
+                continue
             key = date + '-01'
         else:
             key = date[:-3]
+
+        if dateMode == "year":
+            key = key.split('-')[0]
+
+        # print(key)
         
         # parse lyric in popularity measure you'd like to see
         lyrics = di['lyrics']
@@ -118,14 +137,20 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
             # Def use spacy later, but right now I feel like it's too slow
             # collect all the words in the lyrics, and basically have 2 things: 
             # number of occurences of word (adj on word length) and num total words
+            
+            # take away the [] blocks 
+            lyrics = re.sub(r'\[.*?\]', '', lyrics)
+
             count = fineTuneMembership(lyrics, slang, 'new')
             wordMultiplier = slang.count(' ') + 1
             totalWords = 0
             lines = lyrics.lower().split('\n')
             for line in lines:
                 # only not using spacy here because of the punctuation, just taking away the - and the '
-                words = re.split(splitOnRe, line)
-                totalWords += len(words)
+                lineStrip = line.strip()
+                if lineStrip != "":
+                    words = re.split(splitOnRe, lineStrip)
+                    totalWords += len(re.split(splitOnRe, lineStrip))
             if key in graphDict:
                 graphDict[key][0] += count
                 graphDict[key][1] += totalWords
@@ -161,7 +186,7 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = []):
         else:
             return element
 
-    graphList = [(noMonths(startingDate, gd), decideFormat(graphDict[gd])) for gd in graphDict]
+    graphList = [(noMonths(startingDate, gd, dateMode), decideFormat(graphDict[gd])) for gd in graphDict]
     return graphList
 
 # reminder: it's not really slang I'm looking at but lexical borrowings. so keeping it for this file but will be diff in others

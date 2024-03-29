@@ -27,9 +27,11 @@ words = getWords()
 print("Collected words")
 
 allGraphs = {}
+mode = "freq"
+dateMode = ""
 for w in words:
     print(w)
-    allGraphs[w] = getWordUsePlot(w, "freq", dataOfInterest)
+    allGraphs[w] = getWordUsePlot(w, mode, dataOfInterest, dateMode)
 print("All graphs collected")
 
 json_data = json.dumps(allGraphs) 
