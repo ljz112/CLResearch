@@ -241,7 +241,7 @@ def ud_embeddings():
     """
 
 # option of using muse embeddings
-def museWordEmbed():
+def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
 
 
     modes = ['fr', 'en', 'es', 'it', 'de', 'ar']
@@ -294,7 +294,7 @@ def museWordEmbed():
     # to find the embedding
     def findEmbed(word):
         
-        # hyphen case (doesn't seem to work currently)
+        # hyphen case
         if ('-' in word) and (word.count('-') == 1):
             word1, word2 = word.split('-')
             print("HERE " + word1 + " " + word2)
@@ -305,7 +305,7 @@ def museWordEmbed():
             # average of the vector sums
             return [float((word1Embed[i] + word2Embed[i]) / 2.0) for i in range(len(word1Embed))]
         
-        # hyphen case (doesn't seem to work currently)
+        # space case
         if (' ' in word) and (word.count(' ') >= 1):
             words = word.split(' ')
             words = [findEmbed(w) for w in words]
@@ -327,18 +327,42 @@ def museWordEmbed():
                 continue
         return None # defaultVec
 
-    arabicWords = ["زِبْل", "بِالْجُزَاف", "هَيْجاء", "كلب", "قهوة", "فلوس", "السلام عليكم", "ما شاء الله", "إن شاء الله", "الحمد لله", "خلاص", "أستغفر الله", "ضحك", "أخ", "راجل", "مسكين", "حلال"]
 
-    # initialization
-    words = getWords() + arabicWords
-    embeddings = [(findEmbed(word), word) for word in words]
-    noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
-    print("Words with no embedding:")
-    print(noneEmbeddings)
-    print(len(noneEmbeddings))
-    words = [e[1] for e in embeddings if e[0] is not None]
-    embeddings = [e[0] for e in embeddings if e[0] is not None]
-    cluster(words, embeddings)
+    if findSimilarWords:
+        print("Evaluating embeddings")
+        limit = 0.8
+        woiEmbed = findEmbed(ctrlWord)
+        if woiEmbed is None:
+            print("No embedding for this word")
+            return
+        woiEmbed = np.array(woiEmbed)
+        norm_woi = np.linalg.norm(woiEmbed)
+        simWords = []
+        for word in otherWords:
+            otherEmbed = findEmbed(word)
+            if otherEmbed is not None:
+                otherEmbed = np.array(otherEmbed)
+                norm_other = np.linalg.norm(otherEmbed)
+                dot_prod = np.dot(woiEmbed, otherEmbed)
+                similarity = dot_prod / (norm_woi * norm_other)
+                if similarity >= limit:
+                    print(word)
+                    simWords.append(word)
+                break
+        return simWords
+    else:
+        arabicWords = ["زِبْل", "بِالْجُزَاف", "هَيْجاء", "كلب", "قهوة", "فلوس", "السلام عليكم", "ما شاء الله", "إن شاء الله", "الحمد لله", "خلاص", "أستغفر الله", "ضحك", "أخ", "راجل", "مسكين", "حلال"]
+
+        # initialization
+        words = getWords() + arabicWords
+        embeddings = [(findEmbed(word), word) for word in words]
+        noneEmbeddings = [e[1] for e in embeddings if e[0] is None]
+        print("Words with no embedding:")
+        print(noneEmbeddings)
+        print(len(noneEmbeddings))
+        words = [e[1] for e in embeddings if e[0] is not None]
+        embeddings = [e[0] for e in embeddings if e[0] is not None]
+        cluster(words, embeddings)
     
 if __name__ == "__main__":
     if mode == 0:
