@@ -13,10 +13,14 @@ detector = LanguageDetectorBuilder.from_languages(*languages).build()
 # open the file
 
 with open('../dataEntries/frenchDataNew.json', 'r') as file:
-    # Load the JSON data into a Python dictionary
-    data = json.load(file)
+    data = json.load(file)['allSongs']
 
-startData = [d['lyrics'] for d in data['allSongs'] if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
+with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
+    data2 = json.load(file)['allSongs']
+
+data += data2
+
+startData = [d['lyrics'] for d in data if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
 # remove duplicates
 seen = {}
 doc_list = []

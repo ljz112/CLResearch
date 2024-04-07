@@ -16,6 +16,9 @@ import json
 
 # just some setting up, change type of embedding here
 mode = 3
+modes = ['fr', 'en', 'es', 'it', 'de', 'ar']
+onLang = -1
+model = {}
 
 if mode == 0:
     dimensionality = 300
@@ -243,11 +246,6 @@ def ud_embeddings():
 # option of using muse embeddings
 def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
 
-
-    modes = ['fr', 'en', 'es', 'it', 'de', 'ar']
-    onLang = -1
-    model = {}
-
     # small helper to get the right path
     def getPath(lang):
         return '../../museData/MUSE/data/wiki.multi.' + lang + '.vec'
@@ -284,7 +282,7 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
 
     # function to load the next model (less common words)
     def loadNextModel():
-        nonlocal onLang
+        global onLang
         onLang += 1
         langToLoad = modes[onLang]
         print("LOADING " + langToLoad)
@@ -297,7 +295,7 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
         # hyphen case
         if ('-' in word) and (word.count('-') == 1):
             word1, word2 = word.split('-')
-            print("HERE " + word1 + " " + word2)
+            # print("HERE " + word1 + " " + word2)
             word1Embed = findEmbed(word1)
             word2Embed = findEmbed(word2)
             if (word1Embed is None) or (word2Embed is None):
@@ -329,11 +327,11 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
 
 
     if findSimilarWords:
-        print("Evaluating embeddings")
-        limit = 0.8
+        # print("Evaluating embeddings")
+        limit = 0.5
         woiEmbed = findEmbed(ctrlWord)
         if woiEmbed is None:
-            print("No embedding for this word")
+            # print("No embedding for this word")
             return
         woiEmbed = np.array(woiEmbed)
         norm_woi = np.linalg.norm(woiEmbed)
@@ -346,9 +344,8 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
                 dot_prod = np.dot(woiEmbed, otherEmbed)
                 similarity = dot_prod / (norm_woi * norm_other)
                 if similarity >= limit:
-                    print(word)
+                    # print(word)
                     simWords.append(word)
-                break
         return simWords
     else:
         arabicWords = ["زِبْل", "بِالْجُزَاف", "هَيْجاء", "كلب", "قهوة", "فلوس", "السلام عليكم", "ما شاء الله", "إن شاء الله", "الحمد لله", "خلاص", "أستغفر الله", "ضحك", "أخ", "راجل", "مسكين", "حلال"]

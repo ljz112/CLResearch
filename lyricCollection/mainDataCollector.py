@@ -142,7 +142,8 @@ def combineFrenchStuff(country):
     numSongs = len(frenchData2)
     print(f"Collected {numSongs} songs for round 2.")
 
-    return [f1 for f1 in frenchData1 if (getYear(f1) > splitYear)] + [f2 for f2 in frenchData2 if (getYear(f2) <= splitYear)]
+    # Nope this is wrong lmao
+    return [f1 for f1 in frenchData1 if (getYear(f1) <= splitYear)] + [f2 for f2 in frenchData2 if (getYear(f2) > splitYear)]
 
 
 
@@ -160,7 +161,12 @@ if __name__ == "__main__":
         artistIdMap[country] = {}
         # first get the songs from the spotify playlist
         # print(f"STATS BEFORE: {country}, {searchSize}, {searchDepth}")
+        """ 
+        # pre-collected songs
         songArtistPairs = combineFrenchStuff(country)
+        """
+        with open('../dataEntries/olderSongs.json', 'r') as file:
+            songArtistPairs = json.load(file)['data']
         print(f"ALL COLLECTED SONGS: {len(songArtistPairs)}")
         for sap in songArtistPairs:
             songName = sap[0]
@@ -176,7 +182,7 @@ if __name__ == "__main__":
 
     # convert all collected data to a json and create that json file
     json_data = json.dumps({'allSongs': songTable, 'allArtists': artistTable}) 
-    json_file_path = "../dataEntries/output.json"
+    json_file_path = "../dataEntries/frenchDataOldSongs.json"
     with open(json_file_path, "w") as json_file:
         json_file.write(json_data)
 

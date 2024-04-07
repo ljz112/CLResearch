@@ -14,10 +14,8 @@ with open('collectedData/allGraphs.json', 'r') as file:
 with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') as file:
     wordData = list(csv.reader(file))[1:]
 
-treeToAnalyze = LANGUAGE_TREE[10]['children']
-
 # get the average graph
-def getAverageGraph(graph):
+def getAverageGraph(graph, divide = True):
     n = len(graph)
     # if it's smaller than this, it's susceptible to outliers, so take the median
     threshhold = 40
@@ -33,7 +31,7 @@ def getAverageGraph(graph):
                 graphDict[time] += pt[1]
             else:
                 graphDict[time] = pt[1]
-    return np.array([[int(t), float(graphDict[t] / n)] for t in graphDict])
+    return np.array([[int(t), float(graphDict[t] / n if divide else graphDict[t])] for t in graphDict])
 
 # get the median graph
 def getMedianGraph(graph):
@@ -90,15 +88,18 @@ def searchTree(lt, origin):
     return False
 
 # find the language group
-def findLangGroup(origin):
-    for lt in treeToAnalyze:
+def findLangGroup(origin, tree):
+    for lt in tree:
         if searchTree(lt, origin):
             return lt['language']
 
 # for the list format of languages
-def hasLangListVal(word, group):
-    origin = [w[1] for w in wordData if w[0] == word][0]
-    langGroup = findLangGroup(origin)
+def hasLangListVal(word, group, tree):
+    try:
+        origin = [w[1] for w in wordData if w[0] == word][0]
+    except:
+        return False
+    langGroup = findLangGroup(origin, tree)
     return langGroup == group
 
 def adjNum(num, const, i):
@@ -131,55 +132,56 @@ def print_results(clusters, observed, expected, p_value, i):
     print(p_value)
     print()
         
+if __name__ == "__main__":
+    treeToAnalyze = LANGUAGE_TREE[10]['children']
 
-# first get the average graph 
-clusters = [tl['language'] for tl in treeToAnalyze]
-before = graphData
-graphData = {w: graphData[w] for w in graphData if any(hasLangListVal(w, i) for i in clusters)}
-averageGraph = getAverageGraph(graphData)
-features = getFeatures(averageGraph)
+    # first get the average graph 
+    clusters = [tl['language'] for tl in treeToAnalyze]
+    graphData = {w: graphData[w] for w in graphData if any(hasLangListVal(w, i) for i in clusters)}
+    averageGraph = getAverageGraph(graphData)
+    features = getFeatures(averageGraph)
 
-# now for every semantic cluster
-featureDict = {}
-df = len(clusters) - 1
-for i in clusters:
-    specificData = {w: graphData[w] for w in graphData if hasLangListVal(w, i)}
-    # print(specificData.keys())
-    specificGraph = getAverageGraph(specificData)
-    specificFeatures = getFeatures(specificGraph)
-    featureDict[i] = specificFeatures
+    # now for every semantic cluster
+    featureDict = {}
+    df = len(clusters) - 1
+    for i in clusters:
+        specificData = {w: graphData[w] for w in graphData if hasLangListVal(w, i)}
+        # print(specificData.keys())
+        specificGraph = getAverageGraph(specificData)
+        specificFeatures = getFeatures(specificGraph)
+        featureDict[i] = specificFeatures
 
-# now perform the testing
-for i in range(len(features)):
-    observed = [adjNum(featureDict[j][i], features[i], i) for j in clusters]
-    expected = [adjNum(features[i], features[i], i) for j in clusters]
-    chiSum = 0
-    for j in range(len(clusters)):
-        chiSum += float(((observed[j] - expected[j])**2) / expected[j]) if expected[j] != 0.0 else 0.0
-    p_value = 1 - chi2.cdf(chiSum, df)
-    print_results(clusters, observed, expected, p_value, i)
+    # now perform the testing
+    for i in range(len(features)):
+        observed = [adjNum(featureDict[j][i], features[i], i) for j in clusters]
+        expected = [adjNum(features[i], features[i], i) for j in clusters]
+        chiSum = 0
+        for j in range(len(clusters)):
+            chiSum += float(((observed[j] - expected[j])**2) / expected[j]) if expected[j] != 0.0 else 0.0
+        p_value = 1 - chi2.cdf(chiSum, df)
+        print_results(clusters, observed, expected, p_value, i)
 
-"""
-# from sklearn.linear_model import LinearRegression
-# for working with regression (redacted)
+    """
+    # from sklearn.linear_model import LinearRegression
+    # for working with regression (redacted)
 
-def getSemCat(word):
-    return int([w[3] for w in wordData if w[0] == word][0])
+    def getSemCat(word):
+        return int([w[3] for w in wordData if w[0] == word][0])
 
-X = []
-Y = []
+    X = []
+    Y = []
 
-for gd in graphData:
-    dataList = graphData[gd]
-    semCat = getSemCat(gd)
-    X += [semCat for i in range(len(dataList))]
-    Y += dataList
+    for gd in graphData:
+        dataList = graphData[gd]
+        semCat = getSemCat(gd)
+        X += [semCat for i in range(len(dataList))]
+        Y += dataList
 
-X = np.array(X)
-Y = np.array(Y)
+    X = np.array(X)
+    Y = np.array(Y)
 
-reg = LinearRegression().fit(Y, X)
+    reg = LinearRegression().fit(Y, X)
 
-# 0.002064460177274463 lmao
-print(reg.score(Y, X))
-"""
+    # 0.002064460177274463 lmao
+    print(reg.score(Y, X))
+    """    

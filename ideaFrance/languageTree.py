@@ -87,6 +87,11 @@ tml = {}
 tml['language'] = 'tml'
 tml['children'] = []
 
+# thai (only kra-dai language)
+thi = {}
+thi['language'] = 'thi'
+thi['children'] = []
+
 # indo-european
 indo_european = {}
 indo_european['language'] = 'indo_european'
@@ -325,4 +330,4 @@ bsq = {}
 bsq['language'] = 'bsq'
 bsq['children'] = []
 
-LANGUAGE_TREE = [afroasiatic, native_american, msh, creoles, tml, indo_european, east_asian, niger_congo, dha, tr, uralic, bsq]
+LANGUAGE_TREE = [afroasiatic, native_american, msh, creoles, tml, thi, indo_european, east_asian, niger_congo, dha, tr, uralic, bsq]

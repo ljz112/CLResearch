@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import sys
 sys.path.append('..')
 import config
+import json
 
 
 # Your Spotify application credentials
@@ -159,13 +160,20 @@ def removeMultipleReleases(data):
     data += revised_elements
     return data
         
+def getYear(fd):
+    releaseDate = fd[2]
+    return int(releaseDate.split("-")[0])
 
 if __name__ == "__main__":
     print("Usually shouldn't have this called itself but ok")
     # problem 0: have to get all of these results at the end of mainData into a json where everything can be stored (might have to take less popular away if too much storage)
     # problem 1: not doing spotify queries correctly with genre (need array and no ukp2?, but I'm close enough) and artists (need id) (data management problem)
-    mostSongs = collectMostSongs('fr', 50, 3)
-    mostSongs = removeMultipleReleases(mostSongs)
-    print(mostSongs)
-    print(len(mostSongs))
-    # print(getDiscography("Skepta", "ukp3", 50))
+    mostSongs = collectMostSongs('fr', 50, 15)
+    # mostSongs = removeMultipleReleases(mostSongs)
+    mostSongs = [ms for ms in mostSongs if getYear(ms) <= 2015]
+    data = {}
+    data['data'] = mostSongs
+    json_data = json.dumps(data) 
+    json_file_path = "../dataEntries/olderSongsArtistStart.json"
+    with open(json_file_path, "w") as json_file:
+        json_file.write(json_data)

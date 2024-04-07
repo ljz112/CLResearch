@@ -7,7 +7,7 @@ import random
 
 nlp = spacy.load("fr_core_news_sm")
 startingDate = '1990-01'
-threshhold = 90 # when running, if you want to test turn dev parameter to true in examineLine
+threshhold = 100 # when running, if you want to test turn dev parameter to true in examineLine
 splitOnRe = r'[\s\-\']' # better safe than sorry
 
 # calculate number of months from start to curr (in string format)
@@ -49,7 +49,7 @@ def fineTuneMembership(lyrics, slang, method = 'default'):
         return count
 
 # how to determine if a lexical borrowing occurs in a line (change dev if you want to see examples w lowered threshhold)
-def examineLine(line, slang, isDisp = False, dev = False):
+def examineLine(line, slang, isDisp = False, dev = True):
 
     # init a few things
     slangLen = len(slang)
@@ -83,7 +83,7 @@ def examineLine(line, slang, isDisp = False, dev = False):
                 if isDisp:
                     return True
             # edge case 2: the token was cut off by a joining punctuation, (eg ' or -)
-            elif (slangLen > len(token)) and (i > 0) and (tokens[i - 1][-1] in joinPunctuation) and (fuzz.ratio(slang, ''.join([tokens[i - 1], token])) >= thresh):
+            elif (slangLen > len(token)) and (i > 0) and (tokens[i - 1] in joinPunctuation) and (fuzz.ratio(slang, ''.join([tokens[i-2], tokens[i - 1], token])) >= thresh):
                 if dev:
                     print("CASE 3")
                     print(line)
