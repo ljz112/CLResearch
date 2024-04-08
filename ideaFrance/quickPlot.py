@@ -10,7 +10,7 @@ languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMA
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
 # change the word you want to analyze
-word = "tanga"
+word = "check" # 
 mode = "freq"
 dateMode = "year" # "" for month but year gets added as january, "month" for all month specific ones, "year" for only the year
 errCalc = False

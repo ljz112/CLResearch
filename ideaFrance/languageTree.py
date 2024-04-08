@@ -92,6 +92,11 @@ thi = {}
 thi['language'] = 'thi'
 thi['children'] = []
 
+# luo (only nilo-saharan language)
+lo = {}
+lo['language'] = 'lo'
+lo['children'] = []
+
 # indo-european
 indo_european = {}
 indo_european['language'] = 'indo_european'
@@ -330,4 +335,4 @@ bsq = {}
 bsq['language'] = 'bsq'
 bsq['children'] = []
 
-LANGUAGE_TREE = [afroasiatic, native_american, msh, creoles, tml, thi, indo_european, east_asian, niger_congo, dha, tr, uralic, bsq]
+LANGUAGE_TREE = [afroasiatic, native_american, msh, creoles, tml, thi, lo, indo_european, east_asian, niger_congo, dha, tr, uralic, bsq]
