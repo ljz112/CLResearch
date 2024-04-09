@@ -49,7 +49,7 @@ def fineTuneMembership(lyrics, slang, method = 'default'):
         return count
 
 # how to determine if a lexical borrowing occurs in a line (change dev if you want to see examples w lowered threshhold)
-def examineLine(line, slang, isDisp = False, dev = True):
+def examineLine(line, slang, isDisp = False, dev = False):
 
     # init a few things
     slangLen = len(slang)

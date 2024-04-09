@@ -12,7 +12,7 @@ detector = LanguageDetectorBuilder.from_languages(*languages).build()
 # change the word you want to analyze
 word = "check" # 
 mode = "freq"
-dateMode = "year" # "" for month but year gets added as january, "month" for all month specific ones, "year" for only the year
+dateMode = "month" # "" for month but year gets added as january, "month" for all month specific ones, "year" for only the year
 errCalc = False
 
 # collect the data
