@@ -9,7 +9,7 @@ import numpy as np
 
 languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.ITALIAN, Language.SPANISH]
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
-treeToAnalyze = LANGUAGE_TREE
+treeToAnalyze = LANGUAGE_TREE[7]['children'][1]['children']
 clusters = [tl['language'] for tl in treeToAnalyze] 
 
 # model: statsmodels RLM (categorical dummy encoded)
