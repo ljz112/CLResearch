@@ -1,3 +1,6 @@
+######### IN USE FOR PROJECT
+
+
 import gensim
 from gensim.models import fasttext, Word2Vec, KeyedVectors
 from gensim.test.utils import datapath

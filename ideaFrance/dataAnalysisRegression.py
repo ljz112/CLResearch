@@ -1,3 +1,8 @@
+####### IN USE FOR PROJECT
+
+
+
+
 import json
 import csv
 from slangTimeDistrib import startingDate, noMonths
@@ -11,6 +16,7 @@ languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMA
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
 treeToAnalyze = LANGUAGE_TREE[7]['children'][1]['children']
 clusters = [tl['language'] for tl in treeToAnalyze] 
+clusters = ['ve', 'en']
 
 # model: statsmodels RLM (categorical dummy encoded)
 # dependent: weighted average of the frequency 
@@ -110,7 +116,7 @@ with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') 
         originArr = [0] * clen
         # language origin
         for i in range(clen):
-            if hasLangListVal(word, clusters[i], treeToAnalyze):
+            if w[1] == clusters[i]: #hasLangListVal(word, clusters[i], treeToAnalyze):
                 originArr[i] = 1
                 clusterCounts[i] += 1
                 break
@@ -140,3 +146,11 @@ print("P_VALS")
 print(rlm_results.pvalues)
 print("STATISTICALLY SIGNIFICANT")
 print([r < 0.05 for r in rlm_results.pvalues])
+"""
+forJson = [[rlm_results.params[i], rlm_results.bse[i], encodingRef[i]] for i in range(len(encodingRef))]
+json_data = json.dumps(forJson)
+json_file_path = "collectedData/forRFileErrBars.json"
+with open(json_file_path, "w") as json_file:
+    json_file.write(json_data)
+print("All graphs uploaded to json file")
+"""

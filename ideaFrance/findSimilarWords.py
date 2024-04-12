@@ -1,3 +1,6 @@
+######## IN USE FOR PROJECT
+
+
 import json
 from embeddingsPlayground import getWords, museWordEmbed
 import numpy as np

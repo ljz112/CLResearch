@@ -1,3 +1,7 @@
+######### IN USE FOR PROJECT
+
+
+
 import matplotlib.pyplot as plt
 import json
 from slangTimeDistrib import getWordUsePlot
@@ -10,9 +14,9 @@ languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMA
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
 
 # change the word you want to analyze
-word = "check" # 
+word = "hola" # 
 mode = "freq"
-dateMode = "month" # "" for month but year gets added as january, "month" for all month specific ones, "year" for only the year
+dateMode = "year" # "" for month but year gets added as january, "month" for all month specific ones, "year" for only the year
 errCalc = False
 
 # collect the data
@@ -23,7 +27,7 @@ with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
     data2 = json.load(file)['allSongs']
 
 data += data2
-# filter to french speaking ones only (7262/9497 songs)
+# filter to french speaking ones only (8222/9497 songs)
 startData = [d for d in data if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
 
 # remove duplicates
@@ -33,6 +37,8 @@ for item in startData:
     if item['lyrics'] not in seen:
         seen[item['lyrics']] = True
         dataOfInterest.append(item)
+
+print(len(dataOfInterest))
 
 # make the graph
 
@@ -88,8 +94,8 @@ if dateMode == 'year' and errCalc:
     plt.errorbar(x_values, y_values, yerr=yerr, fmt='o', color='blue', alpha=0.5, capsize=5)
 
 # Add labels and title
-plt.xlabel('Year' if dateMode == "year" else 'Months after 1990')
-plt.ylabel('Word Frequency')
+plt.xlabel('Year' if dateMode == "year" else 'Year')
+plt.ylabel('Frequency of Word in Lyrics')
 plt.title('Usage of "' + word + '" over time in French rap lyrics')
 
 # Display the plot
