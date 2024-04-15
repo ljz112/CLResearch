@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: get the lyrics of a song and parse them accordingly
 
 
 from lyricsgenius import Genius
@@ -16,7 +16,6 @@ def getLyric(songName, artist, inFrench = False):
     song = genius.search_song(songName, artist)
     # find the song lyrics and parse them
     lyrics = parse(song, songName, artist, inFrench)
-    # print(lyrics)
     return lyrics
 
 # to parse the lyrics since they can be quite noisy
@@ -72,5 +71,4 @@ def remove_last_occurrence(main_string, sub_string):
         return main_string
 
 if __name__ == "__main__":
-    print("Usually shouldn't have this called itself but ok")
     print(getLyric('A lot', '21 savage'))

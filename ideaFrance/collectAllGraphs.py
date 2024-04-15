@@ -1,4 +1,4 @@
-############ IN USE FOR PROJECT
+############ IN USE FOR PROJECT: collect the frequency over time graph for each collected borrowing (month and year granularity)
 
 
 
@@ -20,7 +20,7 @@ with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
     data2 = json.load(file)['allSongs']
 
 data += data2
-# filter to french speaking ones only (7262/9497 songs)
+# filter to french speaking ones only (8222 songs)
 startData = [d for d in data if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
 
 # remove duplicates

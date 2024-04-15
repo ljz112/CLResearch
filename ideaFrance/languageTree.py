@@ -1,7 +1,6 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: my language categorization method but in a tree format
 
 
-#### my language categorization method but in a python dict/list format
 
 # afroasiatic
 afroasiatic = {}

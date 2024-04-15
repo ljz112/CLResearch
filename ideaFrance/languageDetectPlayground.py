@@ -1,9 +1,8 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: detect lines that don't register as French
 
 
 
 import random
-# import langdetect # works okay, but lingua works better 
 import json
 from unidecode import unidecode
 import re
@@ -46,15 +45,10 @@ def textNormalize(text):
 
 # get overall lang detect stats
 def langDetectStats(text):
-    """
-    distrib = langdetect.detect_langs(text)
-    print("OVERALL DISTRIB")
-    print(distrib)
-    """
     # sep by \n
     lines = text.split('\n')
     notWords = []
-    print("LINES/WORDS NOW")
+    print("LINES/WORDS")
     for l in lines:
         if l != "":
             if useDetect:
@@ -64,7 +58,7 @@ def langDetectStats(text):
                     print(distrib)
                 continue
             else:
-                # tokenize for words (TODO THERE ARE SOME CHARS NOT MATCHING IN HERE, esp phonetic/accented ones. file read or accent mapping)
+                # tokenize for words 
                 doc = nlp(l)
                 tokens = [textNormalize(token.text) for token in doc]
                 for t in tokens:
@@ -88,7 +82,6 @@ toExamine = random.randint(0, numSongs - 1)
 
 firstVal = dataOfInterest[toExamine]
 lyricstoExamine = firstVal['lyrics']
-# lyricstoExamine = "Allah"
 
 print("First text")
 print("SONG NAME: " + firstVal['name'])

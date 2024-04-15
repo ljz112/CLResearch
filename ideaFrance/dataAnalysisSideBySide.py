@@ -1,4 +1,4 @@
-### objective: output data and plot graphs side by side to examine/perform data analysis
+####### IN USE FOR PROJECT: output data and plot graphs side by side (origin, semantic, POS, or just everything) to examine/perform data analysis
 
 import json
 import csv
@@ -6,8 +6,8 @@ from languageTree import LANGUAGE_TREE
 from dataAnalysis import hasLangListVal, getAverageGraph
 import matplotlib.pyplot as plt
 
-# 0: origin, 1: semantic, 2: pos
-analysisMode = 2
+# 0: origin, 1: semantic, 2: pos, 3: everything
+analysisMode = 3
 
 with open('collectedData/allGraphsNew.json', 'r') as file:
     graphData = json.load(file)["year"]
@@ -43,7 +43,7 @@ elif analysisMode == 1:
         specificData = {w: graphData[w] for w in graphData if hasWordType(w, i + 1)}
         # for each word need to find the 
         graphSet[str(i + 1)] = getAverageGraph(specificData, True)
-else:
+elif analysisMode == 2:
     def hasPOSType(w, i):
         pos = [row[4 + i] for row in wordData if row[0] == w][0]
         return pos != ""
@@ -52,6 +52,8 @@ else:
         specificData = {w: graphData[w] for w in graphData if hasPOSType(w, i)}
         posWord = ["n", "v", "adj", "adv", "int"][i]
         graphSet[posWord] = getAverageGraph(specificData, True)
+else:
+    graphSet['everything'] = getAverageGraph(graphData, False)
 forJson = {}
 
 # now print the graph
@@ -63,12 +65,11 @@ for c in graphSet:
     y_values = [point[1] for point in data]
     # ONLY FOR SEMCAT (need to index forJson diff here too)
     # arr = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
-    # print(c)
     forJson[c] = {"x": x_values, "y": y_values}
     plt.plot(x_values, y_values, label=c)
 
-# if you want to use your stuff for R do it here
 """
+# if you want to use your stuff for R do it here
 json_data = json.dumps(forJson)
 json_file_path = "collectedData/forRFilePOS.json"
 with open(json_file_path, "w") as json_file:

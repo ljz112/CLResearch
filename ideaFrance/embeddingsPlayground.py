@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: use word2vec skipgram, urban dictionary, sentence embeddings, or Facebook MUSE, cluster, and evaluate similarity
 
 
 import gensim
@@ -62,11 +62,6 @@ def cluster(words, embeddings, num_clusters = 5):
     pca.fit(embeddings)
     embeddings = pca.transform(embeddings)
 
-    # print("embeddings now: ")
-    # print(embeddings)
-    # print("words now: ")
-    # print(words)
-
     embedding_array = np.array(embeddings)
     # optionally normalize
     # embedding_array = normalize(embedding_array)
@@ -86,14 +81,11 @@ def cluster(words, embeddings, num_clusters = 5):
             clustered_words[cluster_id] = []
         clustered_words[cluster_id].append(words[word_id])
 
-    # print("Cluster assignment")
-    # print(clustered_words)
-
     word_embeddings = [[words[i], embeddings[i]] for i in range(len(words))]
 
     visualize_clusters(clustered_words, word_embeddings)
 
-# taken from chatGPT lol
+# plot the clusters found (taken from chatGPT)
 def visualize_clusters(cluster_assignment, word_embeddings):
     # Initialize plot
     plt.figure(figsize=(10, 6))
@@ -190,23 +182,11 @@ def word2VecSkipGram():
 
     cluster(words, embeddings)
 
-    """
-    # this seemed to return better results for the shorter words I'm looking for
-    word0 = 'mec'
-    word1 = 'homme'
-    word2 = 'bro'
-    
-    print("Cosine similarity 1 - SkipGram : ",
-        model.wv.similarity(word0, word1))
-    
-    print("Cosine similarity 2 - SkipGram : ",
-        model.wv.similarity(word0, word2))
-    """
-
 # options of using urban dictionary embeddings
 def ud_embeddings():
 
     """
+    # for opening urban dictionary embeddings
     import zipfile
 
     # expand the glove embeddings
@@ -232,14 +212,6 @@ def ud_embeddings():
     embeddings = [e[0] for e in embeddings if e[0] is not None]
 
     cluster(words, embeddings)
-
-    """
-    # Print the embeddings
-    for word, embedding in zip(words, embeddings):
-        print(f"Sentence: {word}")
-        print(f"Embedding: {embedding}")
-        print("------")
-    """
 
     """
     import shutil
@@ -298,7 +270,6 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
         # hyphen case
         if ('-' in word) and (word.count('-') == 1):
             word1, word2 = word.split('-')
-            # print("HERE " + word1 + " " + word2)
             word1Embed = findEmbed(word1)
             word2Embed = findEmbed(word2)
             if (word1Embed is None) or (word2Embed is None):
@@ -330,11 +301,9 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
 
 
     if findSimilarWords:
-        # print("Evaluating embeddings")
         limit = 0.5
         woiEmbed = findEmbed(ctrlWord)
         if woiEmbed is None:
-            # print("No embedding for this word")
             return
         woiEmbed = np.array(woiEmbed)
         norm_woi = np.linalg.norm(woiEmbed)
@@ -347,10 +316,10 @@ def museWordEmbed(findSimilarWords = False, ctrlWord = "", otherWords = ""):
                 dot_prod = np.dot(woiEmbed, otherEmbed)
                 similarity = dot_prod / (norm_woi * norm_other)
                 if similarity >= limit:
-                    # print(word)
                     simWords.append(word)
         return simWords
     else:
+        # found manually because of difficulties transliterating arabic
         arabicWords = ["زِبْل", "بِالْجُزَاف", "هَيْجاء", "كلب", "قهوة", "فلوس", "السلام عليكم", "ما شاء الله", "إن شاء الله", "الحمد لله", "خلاص", "أستغفر الله", "ضحك", "أخ", "راجل", "مسكين", "حلال"]
 
         # initialization

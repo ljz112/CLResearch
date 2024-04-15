@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: not used after data collection, but gets birth place and date of artists
 
 
 import musicbrainzngs as mbz

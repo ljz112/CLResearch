@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: output the graph of frequency of a word over time
 
 
 
@@ -6,7 +6,6 @@ import json
 from fuzzywuzzy import fuzz
 import spacy # because tokenizing more is better than tokenizing less imo
 import re
-# from metaphone import doublemetaphone
 import random
 
 nlp = spacy.load("fr_core_news_sm")
@@ -40,8 +39,6 @@ def fineTuneMembership(lyrics, slang, method = 'default'):
     # method 1: count all occurences of the slang as a substring in lyrics
     if method == 'default':
         count = lyrics.lower().count(slang)
-        # if count >= 1:
-            # print(lyrics)
         return count
 
     # method 2: more flexible with typographical variation
@@ -108,8 +105,6 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
             data = json.load(file)
 
         dataOfInterest = [d for d in data['allSongs'] if d['lyrics'].replace('\n', '').strip() != ""]
-    # random seed just for testing
-    # dataOfInterest = [dataOfInterest[random.randint(0, len(dataOfInterest) - 1)]]
 
     # need to make a dictionary for date then return the pairs
     graphDict = {}
@@ -126,8 +121,6 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
 
         if dateMode == "year":
             key = key.split('-')[0]
-
-        # print(key)
         
         # parse lyric in popularity measure you'd like to see
         lyrics = di['lyrics']
@@ -138,9 +131,6 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
             else:
                 graphDict[key] = count
         elif mode == "freq":
-            # Def use spacy later, but right now I feel like it's too slow
-            # collect all the words in the lyrics, and basically have 2 things: 
-            # number of occurences of word (adj on word length) and num total words
             
             # take away the [] blocks 
             lyrics = re.sub(r'\[.*?\]', '', lyrics)
@@ -189,6 +179,21 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
             return sum(element) / len(element)
         else:
             return element
+
+    """
+    # used to get forRFileFactors.json
+    allTokens = [[int(gd), graphDict[gd][1]] for gd in graphDict]
+    forJson = {}
+    data = sorted(allTokens, key=lambda point: point[0])
+    y_values = [point[1] for point in data]
+    forJson["wordNumber"] = {"y": y_values}
+    
+    json_data = json.dumps(forJson)
+    json_file_path = "collectedData/forRFileFactors.json"
+    with open(json_file_path, "w") as json_file:
+        json_file.write(json_data)
+    print("All graphs uploaded to json file")
+    """
 
     graphList = [(noMonths(startingDate, gd, dateMode), decideFormat(graphDict[gd])) for gd in graphDict]
     return graphList

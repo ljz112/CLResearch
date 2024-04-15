@@ -1,4 +1,4 @@
-####### IN USE FOR PROJECT
+####### IN USE FOR PROJECT: run the regression (for given set of languages) and output the coefficients, standard error, and CIs
 
 
 
@@ -14,9 +14,8 @@ import numpy as np
 
 languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.ITALIAN, Language.SPANISH]
 detector = LanguageDetectorBuilder.from_languages(*languages).build()
-treeToAnalyze = LANGUAGE_TREE[7]['children'][1]['children']
+treeToAnalyze = LANGUAGE_TREE
 clusters = [tl['language'] for tl in treeToAnalyze] 
-clusters = ['ve', 'en']
 
 # model: statsmodels RLM (categorical dummy encoded)
 # dependent: weighted average of the frequency 
@@ -55,23 +54,34 @@ with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
         date = di['releaseDate']
         addElement(date.split("-")[0])
 
-# helper to get weighted average
-def getWeightedAverage(graph):
-    N = 0
-    S = 0
-    for g in graph:
-        date, freq = g
-        number = numberDict[str(date)]
-        S += number
-        N += number * freq
-    return N / S
+with open('collectedData/totalWordCounts.json', 'r') as file:
+    totalWordCounts = json.load(file)['wordNumber']['y']
+    totalWordInd = lambda year : int(year - 1991)
+
+# helper to get weighted average (updating to have integral outputs of total years)
+def getWeightedAverage(graph, avgFreq = False):
+    if avgFreq:
+        N = 0
+        S = 0
+        for g in graph:
+            date, freq = g
+            number = numberDict[str(date)]
+            S += number
+            N += number * freq
+        return N / S
+    else: 
+        N = 0
+        for g in graph:
+            date, freq = g
+            N += round(freq * totalWordCounts[totalWordInd(date)])
+        return N
         
 # use the weights to caluclate the average
 with open('collectedData/allGraphsNew.json', 'r') as file:
     graphData = json.load(file)["year"]
     y = []
-    for g in graphData:
-        y.append(getWeightedAverage(graphData[g]))
+    for gd in graphData:
+        y.append(getWeightedAverage(graphData[gd], False))
 
 # now collect the inputs
 with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') as file:
@@ -89,7 +99,7 @@ with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') 
     for c in clusters:
         encodingRef.append("language_" + c)
     for i in range(semlen):
-        encodingRef.append("secmat_" + str(i + 1))
+        encodingRef.append("semcat_" + str(i + 1))
     for pos in posType:
         encodingRef.append("pos_" + pos)
     encodingRef = np.array(encodingRef)
@@ -116,7 +126,7 @@ with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') 
         originArr = [0] * clen
         # language origin
         for i in range(clen):
-            if w[1] == clusters[i]: #hasLangListVal(word, clusters[i], treeToAnalyze):
+            if hasLangListVal(word, clusters[i], treeToAnalyze): # w[1] == clusters[i]:
                 originArr[i] = 1
                 clusterCounts[i] += 1
                 break
@@ -146,8 +156,14 @@ print("P_VALS")
 print(rlm_results.pvalues)
 print("STATISTICALLY SIGNIFICANT")
 print([r < 0.05 for r in rlm_results.pvalues])
+# at 0.95 confidence
+conf_ints = rlm_results.conf_int(0.05)
+print("CONFIDENCE INTERVALS")
+print(conf_ints)
+
+forJson = [[rlm_results.params[i], conf_ints[i][0], conf_ints[i][1], encodingRef[i]] for i in range(len(encodingRef))]
+
 """
-forJson = [[rlm_results.params[i], rlm_results.bse[i], encodingRef[i]] for i in range(len(encodingRef))]
 json_data = json.dumps(forJson)
 json_file_path = "collectedData/forRFileErrBars.json"
 with open(json_file_path, "w") as json_file:

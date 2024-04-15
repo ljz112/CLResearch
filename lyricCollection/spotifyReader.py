@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: recursively go through spotify api to get as many songs of a certain genre as possible
 
 
 import spotipy
@@ -19,10 +19,6 @@ scope = "user-library-read"
 # Create a Spotify object with SpotifyOAuth as the authentication manager
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, 
                     client_secret=client_secret))
-
-# proposed spotify api strategy (may be better than youtube tbh) 
-# 1) find N most popular rap songs of a certain genre: rap of certain country
-# 2) outta each name, branch out and find the songs of that corpus, branching even more for features (assuming it still aligns with the genre)
 
 # just to keep what I already have
 def collectSongs(country, N = 50):
@@ -163,14 +159,13 @@ def removeMultipleReleases(data):
     data += revised_elements
     return data
         
+# get year of a certain release (parsing purposes)
 def getYear(fd):
     releaseDate = fd[2]
     return int(releaseDate.split("-")[0])
 
 if __name__ == "__main__":
     print("Usually shouldn't have this called itself but ok")
-    # problem 0: have to get all of these results at the end of mainData into a json where everything can be stored (might have to take less popular away if too much storage)
-    # problem 1: not doing spotify queries correctly with genre (need array and no ukp2?, but I'm close enough) and artists (need id) (data management problem)
     mostSongs = collectMostSongs('fr', 50, 15)
     # mostSongs = removeMultipleReleases(mostSongs)
     mostSongs = [ms for ms in mostSongs if getYear(ms) <= 2015]

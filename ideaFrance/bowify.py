@@ -1,4 +1,4 @@
-########### IN USE FOR PROJECT
+########### IN USE FOR PROJECT: change the collected corpus to bag of words format
 
 
 

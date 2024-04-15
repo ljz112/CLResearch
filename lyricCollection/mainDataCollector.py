@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: collect the corpus of lyrics (spotify then genius)
 
 
 import spotifyReader
@@ -19,9 +19,8 @@ countries = list(config.COUNTRY_SETTINGS.keys())
 searchSize = 5       # max 50
 searchDepth = 1
 
-# use NLP strategies
+# use NLP strategies (deprecated)
 def parseBackground(query, language):
-    # for now -- want to make this diff prolly
     return []
     try: 
         queryOrigin = processOrigin.getAllRoots(query, language)
@@ -67,15 +66,13 @@ def addArtist(artist, country):
     # then add to the table
     artistTable.append(toAdd)
 
-
+# get parsable list of artists in a song 
 def getArtistList(artists, country):
     return [artistIdMap[country][a] for a in artists]
 
 # get lyrics through Genius API
 def getLyrics(songName, artists):
     # should make conjoined artist title
-
-    # artistQuery = artists[0] + " feat. " + ", ".join(artists[1:])
 
     try: 
         lyrics = geniusReader.getLyric(songName, artists[0])
@@ -117,7 +114,7 @@ def addSong(songName, artists, country, releaseDate, popularity):
     toAdd['lyrics'] = getLyrics(songName, artists)
     songTable.append(toAdd)
 
-# so I can get an evenly distributed collection of things (using code from ideaFrance/frenchDataChecker.py)
+# idea of sampling heavier in earlier years, didn't work out
 def combineFrenchStuff(country):
 
     # helper just to parse for the year
@@ -145,7 +142,6 @@ def combineFrenchStuff(country):
     numSongs = len(frenchData2)
     print(f"Collected {numSongs} songs for round 2.")
 
-    # Nope this is wrong lmao
     return [f1 for f1 in frenchData1 if (getYear(f1) <= splitYear)] + [f2 for f2 in frenchData2 if (getYear(f2) > splitYear)]
 
 
@@ -160,16 +156,16 @@ if __name__ == "__main__":
         if country == 'ukp2':
             continue
         """
-        # some data things 
         artistIdMap[country] = {}
         # first get the songs from the spotify playlist
         # print(f"STATS BEFORE: {country}, {searchSize}, {searchDepth}")
-        """ 
         # pre-collected songs
         songArtistPairs = combineFrenchStuff(country)
         """
+        # if you have spotify already
         with open('../dataEntries/olderSongs.json', 'r') as file:
             songArtistPairs = json.load(file)['data']
+        """
         print(f"ALL COLLECTED SONGS: {len(songArtistPairs)}")
         for sap in songArtistPairs:
             songName = sap[0]

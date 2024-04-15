@@ -1,4 +1,4 @@
-######## IN USE FOR PROJECT
+######## IN USE FOR PROJECT: use cosine similarity (along with embeddingsPlayground) to find all similar words to all collected borrowings
 
 
 import json
@@ -7,8 +7,6 @@ import numpy as np
 
 # do this for every single category
 borrowedWords = getWords()
-
-# print("Opening collected data")
 
 # first open the bow file
 with open('collectedData/bowFrenchDataNew.json', 'r') as file:

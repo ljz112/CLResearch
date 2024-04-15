@@ -1,4 +1,4 @@
-######### IN USE FOR PROJECT
+######### IN USE FOR PROJECT: plot the frequency over time graph for a singular word
 
 
 
@@ -44,18 +44,6 @@ print(len(dataOfInterest))
 
 data = getWordUsePlot(word, mode, dataOfInterest, dateMode)
 
-"""
-with open('../dataEntries/olderSongs.json', 'r') as file:
-    # Load the JSON data into a Python dictionary
-    dataOfInterest = json.load(file)['data']
-""" 
-
-"""
-# open the data
-with open('collectedData/allGraphs.json', 'r') as file:
-    data = json.load(file)[word]
-"""
-
 # visualize the graph
 data = sorted(data, key=lambda point: point[0])
 
@@ -94,9 +82,9 @@ if dateMode == 'year' and errCalc:
     plt.errorbar(x_values, y_values, yerr=yerr, fmt='o', color='blue', alpha=0.5, capsize=5)
 
 # Add labels and title
-plt.xlabel('Year' if dateMode == "year" else 'Year')
-plt.ylabel('Frequency of Word in Lyrics')
-plt.title('Usage of "' + word + '" over time in French rap lyrics')
+plt.xlabel('Year' if dateMode == "year" else 'Months after 1990')
+plt.ylabel('Frequency of Word in All Collected Lyrics')
+plt.title('Usage of "' + word + '" Over Time in French Rap Lyrics')
 
 # Display the plot
 plt.show()

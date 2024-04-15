@@ -1,4 +1,5 @@
-######## IN USE FOR PROJECT
+######## IN USE FOR PROJECT: first draft of data analysis which involved using chi^2. 
+# but useful methods for traversing the language tree and getting the average graph of a set of graphs
 
 
 
@@ -13,7 +14,7 @@ import math
 from languageTree import LANGUAGE_TREE
 
 # open the data
-with open('collectedData/allGraphs.json', 'r') as file:
+with open('collectedData/allGraphsNew.json', 'r') as file:
     graphData = json.load(file)
 
 with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') as file:
@@ -61,7 +62,6 @@ def getFeatures(graph):
     max_value = graph[max_ind][1]
     max_time = graph[max_ind][0]
     # 3: find median value
-    # print(y_points)
     med_value = np.median(y_points)
     # 4: find area under curve
     x_points = graph[:, 0]
@@ -107,6 +107,7 @@ def hasLangListVal(word, group, tree):
     langGroup = findLangGroup(origin, tree)
     return langGroup == group
 
+# scale the chi^2 params
 def adjNum(num, const, i):
     scaleTo = 10.0
     x = const / scaleTo
@@ -126,6 +127,7 @@ def adjNum(num, const, i):
         return num / 3
     """
 
+# print the results in readable format
 def print_results(clusters, observed, expected, p_value, i):
     print(["Max", "Max X", "Median", "Area", "Maxima"][i])
     print(clusters)
@@ -151,7 +153,6 @@ if __name__ == "__main__":
     df = len(clusters) - 1
     for i in clusters:
         specificData = {w: graphData[w] for w in graphData if hasLangListVal(w, i)}
-        # print(specificData.keys())
         specificGraph = getAverageGraph(specificData)
         specificFeatures = getFeatures(specificGraph)
         featureDict[i] = specificFeatures
@@ -165,28 +166,3 @@ if __name__ == "__main__":
             chiSum += float(((observed[j] - expected[j])**2) / expected[j]) if expected[j] != 0.0 else 0.0
         p_value = 1 - chi2.cdf(chiSum, df)
         print_results(clusters, observed, expected, p_value, i)
-
-    """
-    # from sklearn.linear_model import LinearRegression
-    # for working with regression (redacted)
-
-    def getSemCat(word):
-        return int([w[3] for w in wordData if w[0] == word][0])
-
-    X = []
-    Y = []
-
-    for gd in graphData:
-        dataList = graphData[gd]
-        semCat = getSemCat(gd)
-        X += [semCat for i in range(len(dataList))]
-        Y += dataList
-
-    X = np.array(X)
-    Y = np.array(Y)
-
-    reg = LinearRegression().fit(Y, X)
-
-    # 0.002064460177274463 lmao
-    print(reg.score(Y, X))
-    """    
