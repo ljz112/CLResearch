@@ -11,11 +11,14 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from sentence_transformers import SentenceTransformer
 import matplotlib.pyplot as plt
 from lang_trans.arabic import buckwalter
+from languageTree import LANGUAGE_TREE
+from dataAnalysis import hasLangListVal
 
 import numpy as np
 import csv
 import warnings
 import json
+import random
 
 # just some setting up, change type of embedding here
 mode = 3
@@ -36,11 +39,15 @@ else:
 defaultVec = [0.0] * dimensionality
 
 # get the list of borrowed words I'm interested in
-def getWords():
+def getWords(getRaw = False):
     # generate the words in a csv file
     csv_file_path = 'collectedData/borrowedWords.csv'
     with open(csv_file_path, 'r', newline='', encoding='utf-8') as file:
         wordData = list(csv.reader(file))
+
+    # just for visualizations
+    if getRaw:
+        return wordData
 
     # could add condition if " " not in wd[0]
     words = [wd[0].strip().lower() for wd in wordData[1:]]
@@ -87,11 +94,57 @@ def cluster(words, embeddings, num_clusters = 5):
 
 # plot the clusters found (taken from chatGPT)
 def visualize_clusters(cluster_assignment, word_embeddings):
+
+    # remove half of the elements found (for readability)
+    other_assignment = {}
+    for key in cluster_assignment:
+        lookingAt = cluster_assignment[key]
+        halfway_point = len(lookingAt) // 2
+        other_assignment[key] = lookingAt[:halfway_point]
+    cluster_assignment = other_assignment
+
+    # "" for default k-means, "sem" for semantic, and "org" for origin (can change this based on what you'd like the coloring scheme to be)
+    mode = "org"
+
+    catArr = ["Identity-Based", "Occupational", "Food/Drugs", "Materials/Products", "Places", "Crime/Violence", "Sexual", "Expressions", "Grammatical/Other", "Arts-Related"]
+    orgArr = ["Afroasiatic", "Romance", "Germanic", "Creoles", "Niger Congo", "East Asian", "Slavic", "Indo-Iranian", "Native American", "Other"]
+    orgDict = {'afroasiatic': 1, 'lo': 10, 'romance': 2, 'east_asian': 6, 'creoles': 4, 'uralic': 10, 'dha': 10, 'germanic': 3, 'tml': 10, 'niger_congo': 5, 'slv': 7, 'tr': 10, 'indo_iranian': 8, 'native_american': 9, 'thi': 10, 'msh': 10, 'gr': 10, 'bsq': 10}
+    wordData = getWords(True)
+
+    # create dictionary for word -> semcat (no polysemy)
+    actualSemCat = {}
+    for wd in wordData[1:]:
+        cat = wd[3] if type(wd[3]) == int else int(wd[3].split(",")[random.randrange(len(wd[3].split(",")))])
+        actualSemCat[wd[0]] = cat - 1
+
+    # create dictionary for word -> origin
+    actualOrigins = {}
+    typesOfOrg = []
+    def checkAddOrigin(word, group, tree):
+        if hasLangListVal(word, group, tree):
+            actualOrigins[word] = orgDict[group] - 1
+            typesOfOrg.append(group)
+            return True
+        return False
+    for wd in wordData[1:]:
+        for i in range(len(LANGUAGE_TREE)):
+            endEurope = False
+            if i == 7:
+                for j in range(len(LANGUAGE_TREE[i]['children'])):
+                    if checkAddOrigin(wd[0], LANGUAGE_TREE[i]['children'][j]['language'], LANGUAGE_TREE[i]['children']):
+                        endEurope = True
+                        break
+                if endEurope:
+                    break
+            else:
+                if checkAddOrigin(wd[0], LANGUAGE_TREE[i]['language'], LANGUAGE_TREE):
+                    break
+
     # Initialize plot
     plt.figure(figsize=(10, 6))
 
     # Create a color map for clusters
-    colors = plt.cm.get_cmap('tab10', len(cluster_assignment))
+    colors = plt.cm.get_cmap('tab10', len(cluster_assignment) if mode == "" else 10)
 
     # Plot each cluster separately
     for cluster_id, words in cluster_assignment.items():
@@ -103,15 +156,19 @@ def visualize_clusters(cluster_assignment, word_embeddings):
                 x.append(embedding[0])
                 y.append(embedding[1])
                 labels.append(word)
-        plt.scatter(x, y, color=colors(cluster_id), label=f'Cluster {cluster_id}')
+        plt.scatter(x, y, color=colors(cluster_id), alpha=0, label=f'Cluster {cluster_id}')
+
         # Annotate each point with the word label
         for i, label in enumerate(labels):
-            plt.annotate(label, (x[i], y[i]), textcoords="offset points", xytext=(0,10), ha='center')
+            plt.annotate(label, (x[i], y[i]), color=colors(cluster_id) if mode == "" else colors(actualSemCat[label] if mode == 'sem' else actualOrigins[label]), textcoords="offset points", xytext=(0,0), va='center', ha='center')
 
-    plt.title('K-Means Clustering of Word Embeddings')
-    plt.xlabel('Dimension 1')
-    plt.ylabel('Dimension 2')
-    plt.legend()
+    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', label=f'Cluster {i}' if mode == "" else (f'{catArr[i]}' if mode == 'sem' else f'{orgArr[i]}'),
+                             markerfacecolor=colors(i), markersize=10) for i in range(len(cluster_assignment) if mode == "" else 10)]
+
+
+    
+    plt.title('K-Means Clustering of Word Embeddings' if mode == "" else ('Word Embeddings Colored with Manual Semantic Categories' if mode == 'sem' else 'Word Embeddings Colored with Word Origins'))
+    plt.legend(handles=legend_handles)
     plt.grid(True)
     plt.show()
 
