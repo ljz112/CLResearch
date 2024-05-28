@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from lang_trans.arabic import buckwalter
 from languageTree import LANGUAGE_TREE
 from dataAnalysis import hasLangListVal
+from open_files import getWords
 
 import numpy as np
 import csv
@@ -37,21 +38,6 @@ elif mode == 3:
 else:
     dimensionality = 1
 defaultVec = [0.0] * dimensionality
-
-# get the list of borrowed words I'm interested in
-def getWords(getRaw = False):
-    # generate the words in a csv file
-    csv_file_path = 'collectedData/borrowedWords.csv'
-    with open(csv_file_path, 'r', newline='', encoding='utf-8') as file:
-        wordData = list(csv.reader(file))
-
-    # just for visualizations
-    if getRaw:
-        return wordData
-
-    # could add condition if " " not in wd[0]
-    words = [wd[0].strip().lower() for wd in wordData[1:]]
-    return words
 
 # get the embedding of a word given a certain model
 def getEmbed(word, function):

@@ -1,56 +1,37 @@
 ############ IN USE FOR PROJECT: collect the frequency over time graph for each collected borrowing (month and year granularity)
 
-
-
 import json
-from lingua import Language, LanguageDetectorBuilder
+
 from slangTimeDistrib import getWordUsePlot
 from embeddingsPlayground import getWords
-
-# open the json
-languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.ITALIAN, Language.SPANISH]
-detector = LanguageDetectorBuilder.from_languages(*languages).build()
-print("Opening collected songs")
-
-# collect the data
-with open('../dataEntries/frenchDataNew.json', 'r') as file:
-    data = json.load(file)['allSongs']
-
-with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
-    data2 = json.load(file)['allSongs']
-
-data += data2
-# filter to french speaking ones only (8222 songs)
-startData = [d for d in data if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
-
-# remove duplicates
-seen = {}
-dataOfInterest = []
-for item in startData:
-    if item['lyrics'] not in seen:
-        seen[item['lyrics']] = True
-        dataOfInterest.append(item)
-
-# open the slang words
-print("Collecting words")
-words = getWords()
+from open_files import getDataOfInterest, getArtists
 
 
-mode = "freq"
-dateModes = ["year", "month"]
-allGraphs = {}
+if __name__ == "__main__":
+    print("Opening collected songs")
+    dataOfInterest = getDataOfInterest()
+    artistData = getArtists()
 
-for dateMode in dateModes:
-    allGraphs[dateMode] = {}
+    # open the slang words
+    print("Collecting words")
+    words = getWords()
 
-for w in words:
-    print(w)
+
+    mode = "artist_num" # "song_num" # "freq" # what specifically you want the output of the graphs to be
+    dateModes = ['year'] # ["year", "month"]
+    allGraphs = {}
+
     for dateMode in dateModes:
-        allGraphs[dateMode][w] = getWordUsePlot(w, mode, dataOfInterest, dateMode)
-print("All graphs collected")
+        allGraphs[dateMode] = {}
 
-json_data = json.dumps(allGraphs) 
-json_file_path = "collectedData/allGraphsNew.json"
-with open(json_file_path, "w") as json_file:
-    json_file.write(json_data)
-print("All graphs uploaded to json file")
+    for w in words:
+        print(w)
+        for dateMode in dateModes:
+            allGraphs[dateMode][w] = getWordUsePlot(w, mode=mode, dataOfInterest=dataOfInterest, dateMode=dateMode, artistData=artistData)
+    print("All graphs collected")
+
+    json_data = json.dumps(allGraphs) 
+    json_file_path = "collectedData/allGraphsArtistCount.json"
+    with open(json_file_path, "w") as json_file:
+        json_file.write(json_data)
+    print("All graphs uploaded to json file")

@@ -9,16 +9,17 @@ from slangTimeDistrib import startingDate, noMonths
 from languageTree import LANGUAGE_TREE
 from dataAnalysis import hasLangListVal
 import statsmodels.api as sm
-from lingua import Language, LanguageDetectorBuilder
 import numpy as np
+import itertools
+from open_files import getDataOfInterest
 
-languages = [Language.SWAHILI, Language.ENGLISH, Language.FRENCH, Language.GERMAN, Language.ITALIAN, Language.SPANISH]
-detector = LanguageDetectorBuilder.from_languages(*languages).build()
+# gives you option to have dependent as raw count of words "count", number of songs it appears in "songs", and number of artists that say it "artist" 
+mode = "artist"
 treeToAnalyze = LANGUAGE_TREE
 clusters = [tl['language'] for tl in treeToAnalyze] 
 
 # model: statsmodels RLM (categorical dummy encoded)
-# dependent: weighted average of the frequency 
+# dependent: raw count of words, number of songs it appears in, and number of artists saying it (dependent on mode variable)
 # independent: origin, pos, semantic, word length
 
 # helper to format date like in slangtimedistrib
@@ -28,31 +29,17 @@ def formatDate(date):
     else:
         return date[:-3]
 
-# get weights for weighted average (new and old)
-with open('../dataEntries/frenchDataNew.json', 'r') as file:
-    data1 = json.load(file)['allSongs']
-
-with open('../dataEntries/frenchDataOldSongs.json', 'r') as file:
-    data2 = json.load(file)['allSongs']
-    data1 += data2
-    data1 = [d for d in data1 if ((d['lyrics'].replace('\n', '').strip() != "") and (detector.compute_language_confidence_values(d['lyrics'])[0].language.name == "FRENCH"))]
-    seen = {}
-    data = []
-    for item in data1:
-        if item['lyrics'] not in seen:
-            seen[item['lyrics']] = True
-            data.append(item)
-
-    # collect the weights for the number dict (change to year)
-    numberDict = {}
-    def addElement(element):
-        if element in numberDict:
-            numberDict[element] += 1
-        else:
-            numberDict[element] = 1
-    for di in data:
-        date = di['releaseDate']
-        addElement(date.split("-")[0])
+data = getDataOfInterest()
+# collect the weights for the number dict (change to year)
+numberDict = {}
+def addElement(element):
+    if element in numberDict:
+        numberDict[element] += 1
+    else:
+        numberDict[element] = 1
+for di in data:
+    date = di['releaseDate']
+    addElement(date.split("-")[0])
 
 with open('collectedData/totalWordCounts.json', 'r') as file:
     totalWordCounts = json.load(file)['wordNumber']['y']
@@ -75,15 +62,40 @@ def getWeightedAverage(graph, avgFreq = False):
             date, freq = g
             N += round(freq * totalWordCounts[totalWordInd(date)])
         return N
-        
-# use the weights to caluclate the average
-with open('collectedData/allGraphsNew.json', 'r') as file:
-    graphData = json.load(file)["year"]
-    y = []
-    for gd in graphData:
-        y.append(getWeightedAverage(graphData[gd], False))
 
-# now collect the inputs
+y = []
+
+if mode == "count":
+    print("count")
+    # use the weights to caluclate the average
+    with open('collectedData/allGraphsNew.json', 'r') as file:
+        graphData = json.load(file)["year"]
+        y = []
+        for gd in graphData:
+            y.append([getWeightedAverage(graphData[gd], False)])
+
+elif mode == "songs":
+    print("songs")
+    # all songs
+    with open('collectedData/allGraphsSongCount.json', 'r') as file:
+        graphData = json.load(file)["year"]
+        for gd in graphData:
+            miniGraph = graphData[gd]
+            songSum = sum([mg[1] for mg in miniGraph])
+            y.append(songSum)
+
+elif mode == "artist":
+    print("artist")
+    # all artists
+    with open('collectedData/allGraphsArtistCount.json', 'r') as file:
+        graphData = json.load(file)["year"]
+        for gd in graphData:
+            miniGraph = graphData[gd]
+            artistList = list(itertools.chain(*[mg[1] for mg in miniGraph]))
+            artistSum = len(set(artistList))
+            y.append(artistSum)
+
+# now collect the inputs (X)
 with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') as file:
     wordData = list(csv.reader(file))[1:]
     X = []
@@ -143,7 +155,20 @@ with open('collectedData/borrowedWords.csv', 'r', newline='', encoding='utf-8') 
     X = np.delete(X, toDelete, axis=1)
     encodingRef = np.delete(encodingRef, toDelete)
 
-# now do the data analysis code
+"""
+# CSV for if you want to record all 3 outputs and export it alongside the inputs
+forCSV = []
+encodingRef = np.append(encodingRef, ['result_count', 'result_songs', 'result_artists'])
+forCSV = np.array([encodingRef])
+for i in range(len(y)):
+    new_row = np.append(X[i], y[i])
+    forCSV = np.vstack([forCSV, new_row])
+
+with open('output.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(forCSV.tolist())
+"""
+
 rlm_model = sm.RLM(y, X, M=sm.robust.norms.HuberT())
 rlm_results = rlm_model.fit()
 print("REFERENCE")
@@ -165,7 +190,7 @@ forJson = [[rlm_results.params[i], conf_ints[i][0], conf_ints[i][1], encodingRef
 
 """
 json_data = json.dumps(forJson)
-json_file_path = "collectedData/forRFileErrBars.json"
+json_file_path = "collectedData/forRFileErrBarsArtist.json"
 with open(json_file_path, "w") as json_file:
     json_file.write(json_data)
 print("All graphs uploaded to json file")

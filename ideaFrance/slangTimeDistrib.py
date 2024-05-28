@@ -7,6 +7,7 @@ from fuzzywuzzy import fuzz
 import spacy # because tokenizing more is better than tokenizing less imo
 import re
 import random
+from open_files import getDataOfInterest, getArtists
 
 nlp = spacy.load("fr_core_news_sm")
 startingDate = '1990-01'
@@ -97,15 +98,15 @@ def examineLine(line, slang, isDisp = False, dev = False):
 
 
 # for getting the plot of words over time
-def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""):
+def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = "", artistData=[]):
 
     if __name__ == "__main__":
-        with open('../dataEntries/frenchData.json', 'r') as file:
-            # Load the JSON data into a Python dictionary
-            data = json.load(file)
+        dataOfInterest = getDataOfInterest()
+        artistData = getArtists()
 
-        dataOfInterest = [d for d in data['allSongs'] if d['lyrics'].replace('\n', '').strip() != ""]
-
+    if mode == "artist_num":
+        _temp, dupeMapper = artistData
+    
     # need to make a dictionary for date then return the pairs
     graphDict = {}
     for di in dataOfInterest:
@@ -130,6 +131,33 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
                 graphDict[key] += count
             else:
                 graphDict[key] = count
+        # if you want the total number of songs go here
+        elif mode == "song_num":
+
+            # take away the [] blocks 
+            lyrics = re.sub(r'\[.*?\]', '', lyrics)
+
+            count = 1 if fineTuneMembership(lyrics, slang, 'new') > 0 else 0
+
+            if key in graphDict:
+                graphDict[key] += count
+            else:
+                graphDict[key] = count
+
+        # if you want total amount of artists
+        elif mode == "artist_num":
+            # take away the [] blocks 
+            lyrics = re.sub(r'\[.*?\]', '', lyrics)
+
+            artists = di['artists']
+            artists = [dupeMapper[a] for a in artists]
+            artists = artists if fineTuneMembership(lyrics, slang, 'new') > 0 else []
+
+            if key in graphDict:
+                graphDict[key] += artists
+            else:
+                graphDict[key] = artists
+
         elif mode == "freq":
             
             # take away the [] blocks 
@@ -177,6 +205,8 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
             return element[0] / element[1]
         elif mode == "disp":
             return sum(element) / len(element)
+        elif mode == "artist_num":
+            return list(set(element))
         else:
             return element
 
@@ -200,6 +230,7 @@ def getWordUsePlot(slang, mode = "total_num", dataOfInterest = [], dateMode = ""
 
 # reminder: it's not really slang I'm looking at but lexical borrowings. so keeping it for this file but will be diff in others
 if __name__ == "__main__":
-    slangword = "wesh"
-    mode = "disp"
-    print(getWordUsePlot(slangword, mode))
+    slangword = "mienne"
+    mode = "artist_num"
+    dateMode = "year"
+    print(getWordUsePlot(slangword, mode=mode, dateMode=dateMode))

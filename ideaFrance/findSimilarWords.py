@@ -2,7 +2,8 @@
 
 
 import json
-from embeddingsPlayground import getWords, museWordEmbed
+from embeddingsPlayground import museWordEmbed
+from open_files import getWords
 import numpy as np
 
 # do this for every single category
