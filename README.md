@@ -2,7 +2,7 @@
 
   
 
-This repository contains code and data for the 2024 ACL-SRW paper "A Computational Analysis and Exploration of Linguistic Borrowings in French Rap Lyrics" by Lucas Zurbuchen and Rob Voigt.
+This repository contains code and data for the 2024 ACL-SRW [paper](https://www.overleaf.com/read/fybgtbgmfpbw#d52935) "A Computational Analysis and Exploration of Linguistic Borrowings in French Rap Lyrics" by Lucas Zurbuchen and Rob Voigt.
 
   
 
