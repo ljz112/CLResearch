@@ -1,6 +1,11 @@
-# CLResearch
-Code for independent research project on computational linguistics in music (also for my Senior Thesis).
+# About and Instructions for Use
 
-Specifically, I'm focusing on linguistic borrowing in European rap songs, comparing how it occurs between different countries.
+## Configuration
 
-For my thesis, all the python files relavant to the project are marked as so. Additionally, contact me if you need any access codes to the API -- they are stored locally and not on the repository.
+## Corpus and Wordlists
+
+## How to Replicate
+
+## Contact
+
+If you have any questions, feel free to reach out at lucaszurbuchen2024@u.northwestern.edu .
