@@ -10,7 +10,7 @@ This repository contains code and data for the 2024 ACL-SRW [paper](https://link
 
   
 
-In order to access the [Spotify](https://developer.spotify.com/documentation/web-api) and [Genius](https://docs.genius.com/#/getting-started-h1) APIs, obtain the necessary information and put into the `GENIUS_TOKEN`, `SPOTIFY_CLIENT_ID`,  and `SPOTIFY_CLIENT_SECRET`  fields in `config.py` while also installing `lyricsgenius` and `spotipy` on pip. 
+In order to access the [Spotify](https://developer.spotify.com/documentation/web-api) and [Genius](https://docs.genius.com/#/getting-started-h1) APIs, obtain the necessary information and put into the `GENIUS_TOKEN`, `SPOTIFY_CLIENT_ID`,  and `SPOTIFY_CLIENT_SECRET`  fields in `config.py` while also installing `lyricsgenius` and `spotipy` on pip (also be aware of the [Spotify API Terms](https://developer.spotify.com/terms) in particular). 
 
 The [MusicBrainz](https://musicbrainz.org/doc/MusicBrainz_API) API offers useful information on the birthplaces and birth dates of artists -- enter the necessary information into the `EMAIL` field in `config.py` while also installing `musicbrainzngs` on pip in order to use.
   
@@ -19,7 +19,7 @@ The [MusicBrainz](https://musicbrainz.org/doc/MusicBrainz_API) API offers useful
 
   
 
-For open-source use, access 		`frenchDataNew.json` and `frenchDataOldSongs.json` in `dataEntries` to view songs after and before 2015 (just make sure to not use any `name`, `releaseDate`, or `popularity` fields in training datasets since these are directly from Spotify API). `ideaFrance` offers `getDataOfInterest()` and `getArtists()` in `open_files.py` to merge the list of songs and artists.
+For open-source use, access 		`frenchDataNew.json` and `frenchDataOldSongs.json` in `dataEntries` to view songs after and before 2015. `ideaFrance` offers `getDataOfInterest()` and `getArtists()` in `open_files.py` to merge the list of songs and artists.
 
 In `ideaFrance`, view `collectedData` for `borrowedWords.csv` and `borrowedWordsLangKey.csv` for information on the borrowed words examined.
   
