@@ -148,7 +148,6 @@ def combineFrenchStuff(country):
 
 # main code that runs to get songTable and artistTable filled up
 if __name__ == "__main__":
-    # this example is only with switzerland (and only looking at a set of songs assuming I want to branch out recursively)
     countries = list(config.COUNTRY_SETTINGS.keys())
     for country in countries:
         country = 'fr'
