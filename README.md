@@ -19,9 +19,9 @@ The [MusicBrainz](https://musicbrainz.org/doc/MusicBrainz_API) API offers useful
 
   
 
-For open-source use, access 		`frenchDataNew.json` and `frenchDataOldSongs.json` in `dataEntries` to view songs after and before 2015. `ideaFrance` offers `getDataOfInterest()` and `getArtists()` in `open_files.py` to merge the list of songs and artists.
+For open-source use, access 		`frenchDataNew.json` and `frenchDataOldSongs.json` in `dataEntries` to view songs after and before 2015 (just make sure to not use the `name`, `artists`, `releaseDate`, and `popularity` fields in training datasets since these are directly from Spotify API). `ideaFrance` offers `getDataOfInterest()` and `getArtists()` in `open_files.py` to merge the list of songs and artists.
 
-In `ideaFrance`, view `collectedData` for `borrowedWords.csv` and `borrowedWordsLangKey.csv` for information on the borrowed words examined. 
+In `ideaFrance`, view `collectedData` for `borrowedWords.csv` and `borrowedWordsLangKey.csv` for information on the borrowed words examined.
   
 
 ## How to Run
